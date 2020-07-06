@@ -2759,13 +2759,12 @@ The certificate is not yet valid: the notBefore date is after the current time.
 <a id="CERT_HAS_EXPIRED"></a>
 #### `CERT_HAS_EXPIRED`
 
-The certificate has expired: that is the notAfter date is before the current
-time.
+The certificate has expired: the notAfter date is before the current time.
 
 <a id="CRL_NOT_YET_VALID"></a>
 #### `CRL_NOT_YET_VALID`
 
-The revocation data have a future issue date.
+The certificate revocation list (CRL) has a future issue date.
 
 <a id="CRL_HAS_EXPIRED"></a>
 #### `CRL_HAS_EXPIRED`
@@ -2807,7 +2806,7 @@ included in the trusted certificate list.
 <a id="CERT_CHAIN_TOO_LONG"></a>
 #### `CERT_CHAIN_TOO_LONG`
 
-The certificate chain length is greater than the supplied maximum depth.
+The certificate chain length is greater than the maximum depth.
 
 <a id="UNABLE_TO_GET_CRL"></a>
 #### `UNABLE_TO_GET_CRL`
@@ -2832,9 +2831,8 @@ purpose.
 <a id="INVALID_CA"></a>
 #### `INVALID_CA`
 
-The certificate’s signer was not a CA. This may happen if this was a version 1
-certificate, which is common with some CAs, or a version 3 certificate without
-the basic constrains extension.
+A CA certificate is invalid. Either it is not a CA or its extensions are not
+consistent with the supplied purpose.
 
 <a id="PATH_LENGTH_EXCEEDED"></a>
 #### `PATH_LENGTH_EXCEEDED`
