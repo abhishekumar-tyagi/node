@@ -825,7 +825,7 @@ class MyClass extends EventEmitter {
 }
 ```
 
-## `events.once(emitter, name)`
+## `events.once(emitter, name[, options])`
 <!-- YAML
 added:
  - v11.13.0
@@ -834,6 +834,8 @@ added:
 
 * `emitter` {EventEmitter}
 * `name` {string}
+* `options` {Object}
+  * `signal` {AbortSignal} Can be used to cancel waiting for the event.
 * Returns: {Promise}
 
 Creates a `Promise` that is fulfilled when the `EventEmitter` emits the given
@@ -890,6 +892,32 @@ once(ee, 'error')
 ee.emit('error', new Error('boom'));
 
 // Prints: ok boom
+```
+
+An {AbortSignal} can be used to cancel waiting for the event:
+
+```js
+const { EventEmitter, once } = require('events');
+
+const ee = new EventEmitter();
+const ac = new AbortController();
+
+async function foo(emitter, event, signal) {
+  try {
+    await once(emitter, event, { signal });
+    console.log('event emitted!');
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error('Waiting for the event was canceled!');
+    } else {
+      console.error('There was an error', error.message);
+    }
+  }
+}
+
+foo(ee, 'foo', ac.signal);
+ac.abort(); // Abort waiting for the event
+ee.emit('foo'); // Prints: Waiting for the event was canceled!
 ```
 
 ### Awaiting multiple events emitted on `process.nextTick()`
@@ -972,7 +1000,7 @@ Value: `Symbol.for('nodejs.rejection')`
 
 See how to write a custom [rejection handler][rejection].
 
-## `events.on(emitter, eventName)`
+## `events.on(emitter, eventName[, options])`
 <!-- YAML
 added:
  - v13.6.0
@@ -981,6 +1009,8 @@ added:
 
 * `emitter` {EventEmitter}
 * `eventName` {string|symbol} The name of the event being listened for
+* `options` {Object}
+  * `signal` {AbortSignal} Can be used to cancel awaiting events.
 * Returns: {AsyncIterator} that iterates `eventName` events emitted by the `emitter`
 
 ```js
@@ -1009,6 +1039,33 @@ Returns an `AsyncIterator` that iterates `eventName` events. It will throw
 if the `EventEmitter` emits `'error'`. It removes all listeners when
 exiting the loop. The `value` returned by each iteration is an array
 composed of the emitted event arguments.
+
+An {AbortSignal} can be used to cancel waiting on events:
+
+```js
+const { on, EventEmitter } = require('events');
+const ac = new AbortController();
+
+(async () => {
+  const ee = new EventEmitter();
+
+  // Emit later on
+  process.nextTick(() => {
+    ee.emit('foo', 'bar');
+    ee.emit('foo', 42);
+  });
+
+  for await (const event of on(ee, 'foo', { signal: ac.signal })) {
+    // The execution of this inner block is synchronous and it
+    // processes one event at a time (even with await). Do not use
+    // if concurrent execution is required.
+    console.log(event); // prints ['bar'] [42]
+  }
+  // Unreachable here
+})();
+
+process.nextTick(() => ac.abort());
+```
 
 ## `EventTarget` and `Event` API
 <!-- YAML
