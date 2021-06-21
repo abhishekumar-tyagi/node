@@ -893,3 +893,5 @@ module.exports = new Proxy(common, {
     return obj[prop];
   }
 });
+
+require('./remove-primordials.js');
