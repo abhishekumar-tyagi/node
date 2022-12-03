@@ -1210,7 +1210,7 @@ added:
   - v18.1.0
   - v16.17.0
 changes:
-  - version: REPLACEME
+  - version: v19.2.0
     pr-url: https://github.com/nodejs/node/pull/45214
     description: Test runner now supports running in watch mode.
 -->
@@ -1570,18 +1570,19 @@ added: v5.10.0
 
 Set V8's thread pool size which will be used to allocate background jobs.
 
-If set to `0` then V8 will choose an appropriate size of the thread pool based
-on the number of online processors.
+If set to `0` then Node.js will choose an appropriate size of the thread pool
+based on an estimate of the amount of parallelism.
 
-If the value provided is larger than V8's maximum, then the largest value
-will be chosen.
+The amount of parallelism refers to the number of computations that can be
+carried out simultaneously in a given machine. In general, it's the same as the
+amount of CPUs, but it may diverge in environments such as VMs or containers.
 
 ### `--watch`
 
 <!-- YAML
 added: v18.11.0
 changes:
-  - version: REPLACEME
+  - version: v19.2.0
     pr-url: https://github.com/nodejs/node/pull/45214
     description: Test runner now supports running in watch mode.
 -->

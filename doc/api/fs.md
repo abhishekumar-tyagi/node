@@ -941,7 +941,7 @@ try {
   await copyFile('source.txt', 'destination.txt');
   console.log('source.txt was copied to destination.txt');
 } catch {
-  console.log('The file could not be copied');
+  console.error('The file could not be copied');
 }
 
 // By using COPYFILE_EXCL, the operation will fail if destination.txt exists.
@@ -949,7 +949,7 @@ try {
   await copyFile('source.txt', 'destination.txt', constants.COPYFILE_EXCL);
   console.log('source.txt was copied to destination.txt');
 } catch {
-  console.log('The file could not be copied');
+  console.error('The file could not be copied');
 }
 ```
 
@@ -1733,6 +1733,12 @@ Aborting an ongoing request does not abort individual operating
 system requests but rather the internal buffering `fs.writeFile` performs.
 
 ### `fsPromises.constants`
+
+<!-- YAML
+added:
+  - v18.4.0
+  - v16.17.0
+-->
 
 * {Object}
 

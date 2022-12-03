@@ -172,7 +172,7 @@ server.listen(1337);
 // $ curl localhost:1337 -d "\"foo\""
 // string
 // $ curl localhost:1337 -d "not json"
-// error: Unexpected token o in JSON at position 1
+// error: Unexpected token 'o', "not json" is not valid JSON
 ```
 
 [`Writable`][] streams (such as `res` in the example) expose methods such as
@@ -882,8 +882,10 @@ pass.unpipe(writable);
 // readableFlowing is now false.
 
 pass.on('data', (chunk) => { console.log(chunk.toString()); });
+// readableFlowing is still false.
 pass.write('ok');  // Will not emit 'data'.
 pass.resume();     // Must be called to make stream emit 'data'.
+// readableFlowing is now true.
 ```
 
 While `readable.readableFlowing` is `false`, data may be accumulating

@@ -1584,7 +1584,7 @@ int MKDirpAsync(uv_loop_t* loop,
           std::string dirname = path.substr(0,
                                             path.find_last_of(kPathSeparator));
           if (dirname != path) {
-            req_wrap->continuation_data()->PushPath(std::move(path));
+            req_wrap->continuation_data()->PushPath(path);
             req_wrap->continuation_data()->PushPath(std::move(dirname));
           } else if (req_wrap->continuation_data()->paths().size() == 0) {
             err = UV_EEXIST;
@@ -2784,5 +2784,5 @@ void RegisterExternalReferences(ExternalReferenceRegistry* registry) {
 
 }  // end namespace node
 
-NODE_MODULE_CONTEXT_AWARE_INTERNAL(fs, node::fs::Initialize)
-NODE_MODULE_EXTERNAL_REFERENCE(fs, node::fs::RegisterExternalReferences)
+NODE_BINDING_CONTEXT_AWARE_INTERNAL(fs, node::fs::Initialize)
+NODE_BINDING_EXTERNAL_REFERENCE(fs, node::fs::RegisterExternalReferences)

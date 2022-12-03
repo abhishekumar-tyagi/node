@@ -14,6 +14,10 @@
 #include "util-inl.h"
 
 #include <algorithm>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace node {
 
@@ -644,7 +648,7 @@ void Http2Stream::EmitStatistics() {
           duration,
           statistics_);
 
-  env()->SetImmediate([entry = move(entry)](Environment* env) {
+  env()->SetImmediate([entry = std::move(entry)](Environment* env) {
     if (HasHttp2Observer(env))
       entry->Notify(env);
   });
@@ -3358,4 +3362,4 @@ void Initialize(Local<Object> target,
 }  // namespace http2
 }  // namespace node
 
-NODE_MODULE_CONTEXT_AWARE_INTERNAL(http2, node::http2::Initialize)
+NODE_BINDING_CONTEXT_AWARE_INTERNAL(http2, node::http2::Initialize)
