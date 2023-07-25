@@ -4,6 +4,7 @@
 #if defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
 
 #include "base_object-inl.h"
+#include "memory_tracker-inl.h"
 #include "node_context_data.h"
 #include "node_errors.h"
 
@@ -209,6 +210,69 @@ v8::Maybe<bool> StoreCodeCacheResult(
     const v8::ScriptCompiler::Source& source,
     bool produce_cached_data,
     std::unique_ptr<v8::ScriptCompiler::CachedData> new_cached_data);
+
+class NodeRealm final : public node::MemoryRetainer {
+ public:
+  static v8::Local<v8::FunctionTemplate> GetConstructorTemplate(
+      IsolateData* isolate_data);
+  static void CreatePerIsolateProperties(IsolateData* isolate_data,
+                                         v8::Local<v8::ObjectTemplate> target);
+  static void RegisterExternalReferences(
+      node::ExternalReferenceRegistry* registry);
+
+  NodeRealm(node::Environment* env, v8::Local<v8::Object> obj);
+
+  static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Start(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Load(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void SignalStop(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void Stop(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void InternalRequire(const v8::FunctionCallbackInfo<v8::Value>& args);
+  static void TryCloseAllHandles(
+      const v8::FunctionCallbackInfo<v8::Value>& args);
+
+  struct NodeRealmScope : public v8::EscapableHandleScope,
+                          public v8::Context::Scope,
+                          public v8::Isolate::SafeForTerminationScope {
+   public:
+    explicit NodeRealmScope(NodeRealm* w);
+    ~NodeRealmScope();
+
+   private:
+    NodeRealm* w_;
+    bool orig_can_be_terminated_;
+  };
+
+  v8::Local<v8::Context> context() const;
+
+  void MemoryInfo(node::MemoryTracker* tracker) const override;
+  SET_MEMORY_INFO_NAME(NodeRealm)
+  SET_SELF_SIZE(NodeRealm)
+
+ private:
+  static NodeRealm* Unwrap(const v8::FunctionCallbackInfo<v8::Value>& arg);
+  static void CleanupHook(void* arg);
+  void OnExit(int code);
+
+  void Start();
+  v8::MaybeLocal<v8::Value> Load(v8::Local<v8::Function> callback);
+  v8::MaybeLocal<v8::Value> RunInCallbackScope(
+      v8::Local<v8::Function> callback);
+  void RunLoop(uv_run_mode mode);
+  void SignalStop();
+  void Stop(bool may_throw);
+
+  v8::Isolate* isolate_;
+  v8::Global<v8::Object> wrap_;
+
+  std::unique_ptr<v8::MicrotaskQueue> microtask_queue_;
+  v8::Global<v8::Context> outer_context_;
+  v8::Global<v8::Context> context_;
+  node::IsolateData* isolate_data_ = nullptr;
+  node::Environment* env_ = nullptr;
+  bool signaled_stop_ = false;
+  bool can_be_terminated_ = false;
+};
 
 }  // namespace contextify
 }  // namespace node

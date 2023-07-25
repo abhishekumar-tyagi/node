@@ -444,6 +444,11 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::experimental_vm_modules,
             kAllowedInEnvvar);
   AddOption("--experimental-worker", "", NoOp{}, kAllowedInEnvvar);
+  AddOption("--experimental-node-realm",
+            "experimental NodeRealm support",
+            &EnvironmentOptions::experimental_node_realm,
+            kAllowedInEnvironment,
+            false);
   AddOption("--experimental-report", "", NoOp{}, kAllowedInEnvvar);
   AddOption(
       "--experimental-wasi-unstable-preview1", "", NoOp{}, kAllowedInEnvvar);

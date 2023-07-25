@@ -1575,6 +1575,84 @@ inside a `vm.Context`, functions passed to them will be added to global queues,
 which are shared by all contexts. Therefore, callbacks passed to those functions
 are not controllable through the timeout either.
 
+### Class: `NodeRealm`
+
+> Stability: 1 - Experimental. Use `--experimental-node-realm` CLI flag to
+> enable this feature.
+
+<!-- YAML
+added: REPLACEME
+-->
+
+* Extends: {EventEmitter}
+
+A `NodeRealm` is effectively a Node.js environment that runs within the
+same thread. It similar to a [ShadowRealm][], but with a few main differences:
+
+* `NodeRealm` supports loading both CommonJS and ES modules.
+* Full interoperability between the host realm and the `NodeRealm` instance
+  is allowed.
+* There is a deliberate `stop()` function.
+
+```mjs
+import { NodeRealm } from 'node:vm';
+const nodeRealm = new NodeRealm();
+const { myAsyncFunction } = await nodeRealm.createImport(import.meta.url)('my-module');
+console.log(await myAsyncFunction());
+```
+
+#### `new NodeRealm()`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+#### `nodeRealm.stop()`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+* Returns: <Promise>
+
+This will render the inner Node.js instance unusable.
+and is generally comparable to running `process.exit()`.
+
+This method returns a promise that will be resolved when all resources
+associated with this Node.js instance are released. This promise resolves on
+the event loop of the _outer_ Node.js instance.
+
+#### `nodeRealm.createImport(specifier)`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+* `specifier` {string} A module specifier like './file.js' or 'my-package'
+
+Creates a function that can be used for loading
+modules inside the inner Node.js instance.
+
+#### `nodeRealm.globalThis`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+* Type: {Object}
+
+Returns a reference to the global object of the inner Node.js instance.
+
+#### `nodeRealm.process`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+* Type: {Object}
+
+Returns a reference to the `process` object of the inner Node.js instance.
+
 [Cyclic Module Record]: https://tc39.es/ecma262/#sec-cyclic-module-records
 [ECMAScript Module Loader]: esm.md#modules-ecmascript-modules
 [Evaluate() concrete method]: https://tc39.es/ecma262/#sec-moduleevaluation
@@ -1602,3 +1680,4 @@ are not controllable through the timeout either.
 [global object]: https://es5.github.io/#x15.1
 [indirect `eval()` call]: https://es5.github.io/#x10.4.2
 [origin]: https://developer.mozilla.org/en-US/docs/Glossary/Origin
+[ShadowRealm]: https://github.com/tc39/proposal-shadowrealm
