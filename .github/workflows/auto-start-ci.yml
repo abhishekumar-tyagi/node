@@ -46,7 +46,7 @@ jobs:
     if: needs.get-prs-for-ci.outputs.numbers != ''
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744  # v3.6.0
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608  # v4.1.0
         with:
           persist-credentials: false
 
@@ -55,10 +55,10 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      - name: Install node-core-utils
-        run: npm install -g node-core-utils
+      - name: Install @node-core/utils
+        run: npm install -g @node-core/utils
 
-      - name: Setup node-core-utils
+      - name: Setup @node-core/utils
         run: |
           ncu-config set username ${{ secrets.JENKINS_USER }}
           ncu-config set token "${{ secrets.GH_USER_TOKEN }}"

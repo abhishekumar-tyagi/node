@@ -84,14 +84,18 @@ isBuiltin('wss'); // false
 
 <!-- YAML
 added: v20.6.0
+changes:
+  - version: v20.8.0
+    pr-url: https://github.com/nodejs/node/pull/49655
+    description: Add support for WHATWG URL instances.
 -->
 
 > Stability: 1.2 - Release candidate
 
-* `specifier` {string} Customization hooks to be registered; this should be the
-  same string that would be passed to `import()`, except that if it is relative,
-  it is resolved relative to `parentURL`.
-* `parentURL` {string} If you want to resolve `specifier` relative to a base
+* `specifier` {string|URL} Customization hooks to be registered; this should be
+  the same string that would be passed to `import()`, except that if it is
+  relative, it is resolved relative to `parentURL`.
+* `parentURL` {string|URL} If you want to resolve `specifier` relative to a base
   URL, such as `import.meta.url`, you can pass that URL here. **Default:**
   `'data:'`
 * `options` {Object}
@@ -149,9 +153,6 @@ import('node:fs').then((esmFS) => {
 <!-- YAML
 added: v8.8.0
 changes:
-  - version: REPLACEME
-    pr-url: https://github.com/nodejs/node/pull/49144
-    description: Removed `globalPreload`.
   - version: v20.6.0
     pr-url: https://github.com/nodejs/node/pull/48842
     description: Added `initialize` hook to replace `globalPreload`.
@@ -457,6 +458,11 @@ register('./path-to-my-hooks.js', {
 
 <!-- YAML
 changes:
+  - version: v21.0.0
+    pr-url: https://github.com/nodejs/node/pull/50140
+    description: The property `context.importAssertions` is replaced with
+                 `context.importAttributes`. Using the old name is still
+                 supported and will emit an experimental warning.
   - version:
     - v18.6.0
     - v16.17.0
@@ -476,8 +482,8 @@ changes:
 * `specifier` {string}
 * `context` {Object}
   * `conditions` {string\[]} Export conditions of the relevant `package.json`
-  * `importAssertions` {Object} An object whose key-value pairs represent the
-    assertions for the module to import
+  * `importAttributes` {Object} An object whose key-value pairs represent the
+    attributes for the module to import
   * `parentURL` {string|undefined} The module importing this one, or undefined
     if this is the Node.js entry point
 * `nextResolve` {Function} The subsequent `resolve` hook in the chain, or the
@@ -488,7 +494,7 @@ changes:
   * `format` {string|null|undefined} A hint to the load hook (it might be
     ignored)
     `'builtin' | 'commonjs' | 'json' | 'module' | 'wasm'`
-  * `importAssertions` {Object|undefined} The import assertions to use when
+  * `importAttributes` {Object|undefined} The import attributes to use when
     caching the module (optional; if excluded the input will be used)
   * `shortCircuit` {undefined|boolean} A signal that this hook intends to
     terminate the chain of `resolve` hooks. **Default:** `false`
@@ -505,10 +511,10 @@ the final `format` value (and it is free to ignore the hint provided by
 `resolve`); if `resolve` provides a `format`, a custom `load` hook is required
 even if only to pass the value to the Node.js default `load` hook.
 
-Import type assertions are part of the cache key for saving loaded modules into
+Import type attributes are part of the cache key for saving loaded modules into
 the internal module cache. The `resolve` hook is responsible for returning an
-`importAssertions` object if the module should be cached with different
-assertions than were present in the source code.
+`importAttributes` object if the module should be cached with different
+attributes than were present in the source code.
 
 The `conditions` property in `context` is an array of conditions for
 [package exports conditions][Conditional exports] that apply to this resolution
@@ -574,7 +580,7 @@ changes:
   * `conditions` {string\[]} Export conditions of the relevant `package.json`
   * `format` {string|null|undefined} The format optionally supplied by the
     `resolve` hook chain
-  * `importAssertions` {Object}
+  * `importAttributes` {Object}
 * `nextLoad` {Function} The subsequent `load` hook in the chain, or the
   Node.js default `load` hook after the last user-supplied `load` hook
   * `specifier` {string}

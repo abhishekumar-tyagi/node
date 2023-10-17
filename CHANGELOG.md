@@ -2,6 +2,7 @@
 
 Select a Node.js version below to view the changelog history:
 
+* [Node.js 21](doc/changelogs/CHANGELOG_V21.md) **Current**
 * [Node.js 20](doc/changelogs/CHANGELOG_V20.md) **Current**
 * [Node.js 19](doc/changelogs/CHANGELOG_V19.md) End-of-Life
 * [Node.js 18](doc/changelogs/CHANGELOG_V18.md) **Long Term Support**
@@ -29,12 +30,19 @@ release.
 
 <table>
 <tr>
+  <th title="Current"><a href="doc/changelogs/CHANGELOG_V21.md">21</a> (Current)</th>
   <th title="Current"><a href="doc/changelogs/CHANGELOG_V20.md">20</a> (Current)</th>
   <th title="LTS Until 2025-04"><a href="doc/changelogs/CHANGELOG_V18.md">18</a> (LTS)</th>
 </tr>
 <tr>
   <td valign="top">
-<b><a href="doc/changelogs/CHANGELOG_V20.md#20.6.1">20.6.1</a></b><br/>
+<b><a href="doc/changelogs/CHANGELOG_V21.md#21.0.0">21.0.0</a></b><br/>
+  </td>
+  <td valign="top">
+<b><a href="doc/changelogs/CHANGELOG_V20.md#20.8.1">20.8.1</a></b><br/>
+<a href="doc/changelogs/CHANGELOG_V20.md#20.8.0">20.8.0</a><br/>
+<a href="doc/changelogs/CHANGELOG_V20.md#20.7.0">20.7.0</a><br/>
+<a href="doc/changelogs/CHANGELOG_V20.md#20.6.1">20.6.1</a><br/>
 <a href="doc/changelogs/CHANGELOG_V20.md#20.6.0">20.6.0</a><br/>
 <a href="doc/changelogs/CHANGELOG_V20.md#20.5.1">20.5.1</a><br/>
 <a href="doc/changelogs/CHANGELOG_V20.md#20.5.0">20.5.0</a><br/>
@@ -46,7 +54,10 @@ release.
 <a href="doc/changelogs/CHANGELOG_V20.md#20.0.0">20.0.0</a><br/>
   </td>
   <td valign="top">
-<b><a href="doc/changelogs/CHANGELOG_V18.md#18.17.1">18.17.1</a></b><br/>
+<b><a href="doc/changelogs/CHANGELOG_V18.md#18.18.2">18.18.2</a></b><br/>
+<a href="doc/changelogs/CHANGELOG_V18.md#18.18.1">18.18.1</a><br/>
+<a href="doc/changelogs/CHANGELOG_V18.md#18.18.0">18.18.0</a><br/>
+<a href="doc/changelogs/CHANGELOG_V18.md#18.17.1">18.17.1</a><br/>
 <a href="doc/changelogs/CHANGELOG_V18.md#18.17.0">18.17.0</a><br/>
 <a href="doc/changelogs/CHANGELOG_V18.md#18.16.1">18.16.1</a><br/>
 <a href="doc/changelogs/CHANGELOG_V18.md#18.16.0">18.16.0</a><br/>

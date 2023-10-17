@@ -771,10 +771,12 @@ void ContextifyScript::New(const FunctionCallbackInfo<Value>& args) {
   bool produce_cached_data = false;
   Local<Context> parsing_context = context;
 
+  Local<Symbol> id_symbol;
   if (argc > 2) {
     // new ContextifyScript(code, filename, lineOffset, columnOffset,
-    //                      cachedData, produceCachedData, parsingContext)
-    CHECK_EQ(argc, 7);
+    //                      cachedData, produceCachedData, parsingContext,
+    //                      hostDefinedOptionId)
+    CHECK_EQ(argc, 8);
     CHECK(args[2]->IsNumber());
     line_offset = args[2].As<Int32>()->Value();
     CHECK(args[3]->IsNumber());
@@ -793,6 +795,8 @@ void ContextifyScript::New(const FunctionCallbackInfo<Value>& args) {
       CHECK_NOT_NULL(sandbox);
       parsing_context = sandbox->context();
     }
+    CHECK(args[7]->IsSymbol());
+    id_symbol = args[7].As<Symbol>();
   }
 
   ContextifyScript* contextify_script =
@@ -816,7 +820,6 @@ void ContextifyScript::New(const FunctionCallbackInfo<Value>& args) {
 
   Local<PrimitiveArray> host_defined_options =
       PrimitiveArray::New(isolate, loader::HostDefinedOptions::kLength);
-  Local<Symbol> id_symbol = Symbol::New(isolate, filename);
   host_defined_options->Set(
       isolate, loader::HostDefinedOptions::kID, id_symbol);
 
@@ -1189,6 +1192,10 @@ void ContextifyContext::CompileFunction(
     params_buf = args[8].As<Array>();
   }
 
+  // Argument 10: host-defined option symbol
+  CHECK(args[9]->IsSymbol());
+  Local<Symbol> id_symbol = args[9].As<Symbol>();
+
   // Read cache from cached data buffer
   ScriptCompiler::CachedData* cached_data = nullptr;
   if (!cached_data_buf.IsEmpty()) {
@@ -1200,7 +1207,6 @@ void ContextifyContext::CompileFunction(
   // Set host_defined_options
   Local<PrimitiveArray> host_defined_options =
       PrimitiveArray::New(isolate, loader::HostDefinedOptions::kLength);
-  Local<Symbol> id_symbol = Symbol::New(isolate, filename);
   host_defined_options->Set(
       isolate, loader::HostDefinedOptions::kID, id_symbol);
 
