@@ -6,15 +6,17 @@ require('../common');
 const assert = require('assert');
 const async_hooks = require('async_hooks');
 
-[0, 1, false, true, null, 'hello'].forEach((badArg) => {
-  const hookNames = ['init', 'before', 'after', 'destroy', 'promiseResolve'];
-  hookNames.forEach((field) => {
+const badArgs = [0, 1, false, true, null, 'hello'];
+const hookNames = ['init', 'before', 'after', 'destroy', 'promiseResolve'];
+
+for (const arg of badArgs) {
+  for (const name of hookNames) {
     assert.throws(() => {
-      async_hooks.createHook({ [field]: badArg });
+      async_hooks.createHook({ [name]: arg });
     }, {
       code: 'ERR_ASYNC_CALLBACK',
       name: 'TypeError',
-      message: `hook.${field} must be a function`
+      message: `hook.${name} must be a function`
     });
-  });
-});
+  }
+}
