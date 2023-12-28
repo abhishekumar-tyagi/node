@@ -7368,7 +7368,7 @@ added:
 
 * {number|bigint}
 
-Optimal transfer block size.
+Optimal transfer block size in bytes.
 
 #### `statfs.ffree`
 
@@ -7404,7 +7404,104 @@ added:
 
 * {number|bigint}
 
-Type of file system.
+Magic number of file system in decimal.
+
+The magic number of a file system is commonly referred to in hexadecimal.
+
+<details>
+  <summary>Magic Numbers</summary>
+  
+  | Filesystem Type       | Hexadecimal  | Decimal      |
+  | --------------------- | ------------ | ------------ |
+  | ADFS_SUPER_MAGIC      | `0xadf5`     | `44533`      |
+  | AFFS_SUPER_MAGIC      | `0xadff`     | `44543`      |
+  | AFS_SUPER_MAGIC       | `0x5346414f` | `1397113167` |
+  | ANON_INODE_FS_MAGIC   | `0x09041934` | `151263540`  |
+  | AUTOFS_SUPER_MAGIC    | `0x0187`     | `391`        |
+  | BDEVFS_MAGIC          | `0x62646576` | `1650746742` |
+  | BEFS_SUPER_MAGIC      | `0x42465331` | `1111905073` |
+  | BFS_MAGIC             | `0x1badface` | `464386766`  |
+  | BINFMTFS_MAGIC        | `0x42494e4d` | `1112100429` |
+  | BPF_FS_MAGIC          | `0xcafe4a11` | `3405662737` |
+  | BTRFS_SUPER_MAGIC     | `0x9123683e` | `2435016766` |
+  | BTRFS_TEST_MAGIC      | `0x73727279` | `1936880249` |
+  | CGROUP_SUPER_MAGIC    | `0x27e0eb`   | `2613483`    |
+  | CGROUP2_SUPER_MAGIC   | `0x63677270` | `1667723888` |
+  | CIFS_MAGIC_NUMBER     | `0xff534d42` | `4283649346` |
+  | CODA_SUPER_MAGIC      | `0x73757245` | `1937076805` |
+  | COH_SUPER_MAGIC       | `0x012ff7b7` | `19920823`   |
+  | CRAMFS_MAGIC          | `0x28cd3d45` | `684539205`  |
+  | DEBUGFS_MAGIC         | `0x64626720` | `1684170528` |
+  | DEVFS_SUPER_MAGIC     | `0x1373`     | `4979`       |
+  | DEVPTS_SUPER_MAGIC    | `0x1cd1`     | `7377`       |
+  | ECRYPTFS_SUPER_MAGIC  | `0xf15f`     | `61791`      |
+  | EFIVARFS_MAGIC        | `0xde5e81e4` | `3730735588` |
+  | EFS_SUPER_MAGIC       | `0x00414a53` | `4278867`    |
+  | EXT_SUPER_MAGIC       | `0x137d`     | `4989`       |
+  | EXT2_OLD_SUPER_MAGIC  | `0xef51`     | `61265`      |
+  | EXT2_SUPER_MAGIC      | `0xef53`     | `61267`      |
+  | EXT3_SUPER_MAGIC      | `0xef53`     | `61267`      |
+  | EXT4_SUPER_MAGIC      | `0xef53`     | `61267`      |
+  | F2FS_SUPER_MAGIC      | `0xf2f52010` | `4076150800` |
+  | FUSE_SUPER_MAGIC      | `0x65735546` | `1702057286` |
+  | FUTEXFS_SUPER_MAGIC   | `0xbad1dea`  | `195894762`  |
+  | HFS_SUPER_MAGIC       | `0x4244`     | `16964`      |
+  | HOSTFS_SUPER_MAGIC    | `0x00c0ffee` | `12648430`   |
+  | HPFS_SUPER_MAGIC      | `0xf995e849` | `4187351113` |
+  | HUGETLBFS_MAGIC       | `0x958458f6` | `2508478710` |
+  | ISOFS_SUPER_MAGIC     | `0x9660`     | `38496`      |
+  | JFFS2_SUPER_MAGIC     | `0x72b6`     | `29366`      |
+  | JFS_SUPER_MAGIC       | `0x3153464a` | `827541066`  |
+  | MINIX_SUPER_MAGIC     | `0x137f`     | `4991`       |
+  | MINIX_SUPER_MAGIC2    | `0x138f`     | `5007`       |
+  | MINIX2_SUPER_MAGIC    | `0x2468`     | `9320`       |
+  | MINIX2_SUPER_MAGIC2   | `0x2478`     | `9336`       |
+  | MINIX3_SUPER_MAGIC    | `0x4d5a`     | `19802`      |
+  | MQUEUE_MAGIC          | `0x19800202` | `427819522`  |
+  | MSDOS_SUPER_MAGIC     | `0x4d44`     | `19780`      |
+  | MTD_INODE_FS_MAGIC    | `0x11307854` | `288389204`  |
+  | NCP_SUPER_MAGIC       | `0x564c`     | `22092`      |
+  | NFS_SUPER_MAGIC       | `0x6969`     | `26985`      |
+  | NILFS_SUPER_MAGIC     | `0x3434`     | `13364`      |
+  | NSFS_MAGIC            | `0x6e736673` | `1853056627` |
+  | NTFS_SB_MAGIC         | `0x5346544e` | `1397118030` |
+  | OCFS2_SUPER_MAGIC     | `0x7461636f` | `1952539503` |
+  | OPENPROM_SUPER_MAGIC  | `0x9fa1`     | `40865`      |
+  | OVERLAYFS_SUPER_MAGIC | `0x794c7630` | `2035054128` |
+  | PIPEFS_MAGIC          | `0x50495045` | `1346981957` |
+  | PROC_SUPER_MAGIC      | `0x9fa0`     | `40864`      |
+  | PSTOREFS_MAGIC        | `0x6165676c` | `1634035564` |
+  | QNX4_SUPER_MAGIC      | `0x002f`     | `47`         |
+  | QNX6_SUPER_MAGIC      | `0x68191122` | `1746473250` |
+  | RAMFS_MAGIC           | `0x858458f6` | `2240043254` |
+  | REISERFS_SUPER_MAGIC  | `0x52654973` | `1382369651` |
+  | ROMFS_MAGIC           | `0x7275`     | `29301`      |
+  | SECURITYFS_MAGIC      | `0x73636673` | `1935894131` |
+  | SELINUX_MAGIC         | `0xf97cff8c` | `4185718668` |
+  | SMACK_MAGIC           | `0x43415d53` | `1128357203` |
+  | SMB_SUPER_MAGIC       | `0x517b`     | `20859`      |
+  | SMB2_MAGIC_NUMBER     | `0xfe534d42` | `4266872130` |
+  | SOCKFS_MAGIC          | `0x534f434b` | `1397703499` |
+  | SQUASHFS_MAGIC        | `0x73717368` | `1936814952` |
+  | SYSFS_MAGIC           | `0x62656572` | `1650812274` |
+  | SYSV2_SUPER_MAGIC     | `0x012ff7b6` | `19920822`   |
+  | SYSV4_SUPER_MAGIC     | `0x012ff7b5` | `19920821`   |
+  | TMPFS_MAGIC           | `0x01021994` | `16914836`   |
+  | TRACEFS_MAGIC         | `0x74726163` | `1953653091` |
+  | UDF_SUPER_MAGIC       | `0x15013346` | `352400198`  |
+  | UFS_MAGIC             | `0x00011954` | `72020`      |
+  | USBDEVICE_SUPER_MAGIC | `0x9fa2`     | `40866`      |
+  | V9FS_MAGIC            | `0x01021997` | `16914839`   |
+  | VXFS_SUPER_MAGIC      | `0xa501fcf5` | `2768370933` |
+  | XENFS_SUPER_MAGIC     | `0xabba1974` | `2881100148` |
+  | XENIX_SUPER_MAGIC     | `0x012ff7b4` | `19920820`   |
+  | XFS_SUPER_MAGIC       | `0x58465342` | `1481003842` |
+  | _XIAFS_SUPER_MAGIC    | `0x012fd16d` | `19911021`   |
+</details>
+
+
+
+
 
 ### Class: `fs.WriteStream`
 
