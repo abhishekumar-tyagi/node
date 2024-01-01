@@ -7,12 +7,15 @@
 #include <memory_tracker-inl.h>
 #include <ngtcp2/ngtcp2.h>
 #include <node_errors.h>
+#include <node_external_reference.h>
 #include <node_sockaddr-inl.h>
 #include <req_wrap-inl.h>
 #include <util-inl.h>
 #include <uv.h>
 #include <v8.h>
+#include <limits>
 #include "application.h"
+#include "bindingdata.h"
 #include "defs.h"
 
 namespace node {
@@ -30,8 +33,10 @@ using v8::Maybe;
 using v8::Nothing;
 using v8::Number;
 using v8::Object;
+using v8::ObjectTemplate;
 using v8::PropertyAttribute;
 using v8::String;
+using v8::Uint32;
 using v8::Value;
 
 namespace quic {
@@ -43,14 +48,12 @@ namespace quic {
   V(RECEIVING, receiving, uint8_t)                                             \
   /* Listening as a QUIC server */                                             \
   V(LISTENING, listening, uint8_t)                                             \
-  /* In the process of closing down */                                         \
-  V(CLOSING, closing, uint8_t)                                                 \
   /* In the process of closing down, waiting for pending send callbacks */     \
-  V(WAITING_FOR_CALLBACKS, waiting_for_callbacks, uint8_t)                     \
+  V(CLOSING, closing, uint8_t)                                                 \
   /* Temporarily paused serving new initial requests */                        \
   V(BUSY, busy, uint8_t)                                                       \
   /* The number of pending send callbacks */                                   \
-  V(PENDING_CALLBACKS, pending_callbacks, size_t)
+  V(PENDING_CALLBACKS, pending_callbacks, uint64_t)
 
 #define ENDPOINT_STATS(V)                                                      \
   V(CREATED_AT, created_at)                                                    \
@@ -67,6 +70,11 @@ namespace quic {
   V(STATELESS_RESET_COUNT, stateless_reset_count)                              \
   V(IMMEDIATE_CLOSE_COUNT, immediate_close_count)
 
+#define ENDPOINT_CC(V)                                                         \
+  V(RENO, reno)                                                                \
+  V(CUBIC, cubic)                                                              \
+  V(BBR, bbr)
+
 struct Endpoint::State {
 #define V(_, name, type) type name;
   ENDPOINT_STATE(V)
@@ -76,7 +84,7 @@ struct Endpoint::State {
 STAT_STRUCT(Endpoint, ENDPOINT)
 
 // ============================================================================
-
+// Endpoint::Options
 namespace {
 #ifdef DEBUG
 bool is_diagnostic_packet_loss(double probability) {
@@ -87,71 +95,107 @@ bool is_diagnostic_packet_loss(double probability) {
 }
 #endif  // DEBUG
 
+Maybe<ngtcp2_cc_algo> getAlgoFromString(Environment* env, Local<String> input) {
+  auto& state = BindingData::Get(env);
+#define V(name, str)                                                           \
+  if (input->StringEquals(state.str##_string())) {                             \
+    return Just(NGTCP2_CC_ALGO_##name);                                        \
+  }
+
+  ENDPOINT_CC(V)
+
+#undef V
+  return Nothing<ngtcp2_cc_algo>();
+}
+
 template <typename Opt, ngtcp2_cc_algo Opt::*member>
 bool SetOption(Environment* env,
                Opt* options,
-               const v8::Local<v8::Object>& object,
-               const v8::Local<v8::String>& name) {
-  v8::Local<v8::Value> value;
+               const Local<Object>& object,
+               const Local<String>& name) {
+  Local<Value> value;
   if (!object->Get(env->context(), name).ToLocal(&value)) return false;
   if (!value->IsUndefined()) {
-    int num = value.As<Int32>()->Value();
-    switch (num) {
-      case NGTCP2_CC_ALGO_RENO:
-        [[fallthrough]];
-      case NGTCP2_CC_ALGO_CUBIC:
-        [[fallthrough]];
-      case NGTCP2_CC_ALGO_BBR:
-        [[fallthrough]];
-      case NGTCP2_CC_ALGO_BBR2:
-        break;
-      default:
-        THROW_ERR_INVALID_ARG_VALUE(env, "The cc_algorithm is invalid");
+    ngtcp2_cc_algo algo;
+    if (value->IsString()) {
+      if (!getAlgoFromString(env, value.As<String>()).To(&algo)) {
+        THROW_ERR_INVALID_ARG_VALUE(env, "The cc_algorithm option is invalid");
         return false;
+      }
+    } else {
+      if (!value->IsInt32()) {
+        THROW_ERR_INVALID_ARG_VALUE(
+            env, "The cc_algorithm option must be a string or an integer");
+        return false;
+      }
+      Local<Int32> num;
+      if (!value->ToInt32(env->context()).ToLocal(&num)) {
+        THROW_ERR_INVALID_ARG_VALUE(env, "The cc_algorithm option is invalid");
+        return false;
+      }
+      switch (num->Value()) {
+#define V(name, _)                                                             \
+  case NGTCP2_CC_ALGO_##name:                                                  \
+    break;
+        ENDPOINT_CC(V)
+#undef V
+        default:
+          THROW_ERR_INVALID_ARG_VALUE(env,
+                                      "The cc_algorithm option is invalid");
+          return false;
+      }
+      algo = static_cast<ngtcp2_cc_algo>(num->Value());
     }
-    options->*member = static_cast<ngtcp2_cc_algo>(num);
+    options->*member = algo;
   }
   return true;
 }
 
+#if DEBUG
 template <typename Opt, double Opt::*member>
 bool SetOption(Environment* env,
                Opt* options,
-               const v8::Local<v8::Object>& object,
-               const v8::Local<v8::String>& name) {
-  v8::Local<v8::Value> value;
+               const Local<Object>& object,
+               const Local<String>& name) {
+  Local<Value> value;
   if (!object->Get(env->context(), name).ToLocal(&value)) return false;
   if (!value->IsUndefined()) {
-    CHECK(value->IsNumber());
-    options->*member = value.As<Number>()->Value();
+    Local<Number> num;
+    if (!value->ToNumber(env->context()).ToLocal(&num)) {
+      Utf8Value nameStr(env->isolate(), name);
+      THROW_ERR_INVALID_ARG_VALUE(
+          env, "The %s option must be a number", *nameStr);
+      return false;
+    }
+    options->*member = num->Value();
   }
   return true;
 }
-
-template <typename Opt, uint32_t Opt::*member>
-bool SetOption(Environment* env,
-               Opt* options,
-               const v8::Local<v8::Object>& object,
-               const v8::Local<v8::String>& name) {
-  v8::Local<v8::Value> value;
-  if (!object->Get(env->context(), name).ToLocal(&value)) return false;
-  if (!value->IsUndefined()) {
-    CHECK(value->IsNumber());
-    options->*member = value.As<Int32>()->Value();
-  }
-  return true;
-}
+#endif  // DEBUG
 
 template <typename Opt, uint8_t Opt::*member>
 bool SetOption(Environment* env,
                Opt* options,
-               const v8::Local<v8::Object>& object,
-               const v8::Local<v8::String>& name) {
-  v8::Local<v8::Value> value;
+               const Local<Object>& object,
+               const Local<String>& name) {
+  Local<Value> value;
   if (!object->Get(env->context(), name).ToLocal(&value)) return false;
   if (!value->IsUndefined()) {
-    CHECK(value->IsNumber());
-    options->*member = value.As<Int32>()->Value();
+    if (!value->IsUint32()) {
+      Utf8Value nameStr(env->isolate(), name);
+      THROW_ERR_INVALID_ARG_VALUE(
+          env, "The %s option must be an uint8", *nameStr);
+      return false;
+    }
+    Local<Uint32> num;
+    if (!value->ToUint32(env->context()).ToLocal(&num) ||
+        num->Value() > std::numeric_limits<uint8_t>::max()) {
+      Utf8Value nameStr(env->isolate(), name);
+      THROW_ERR_INVALID_ARG_VALUE(
+          env, "The %s option must be an uint8", *nameStr);
+      return false;
+    }
+    options->*member = num->Value();
   }
   return true;
 }
@@ -159,16 +203,30 @@ bool SetOption(Environment* env,
 template <typename Opt, TokenSecret Opt::*member>
 bool SetOption(Environment* env,
                Opt* options,
-               const v8::Local<v8::Object>& object,
-               const v8::Local<v8::String>& name) {
-  v8::Local<v8::Value> value;
+               const Local<Object>& object,
+               const Local<String>& name) {
+  Local<Value> value;
   if (!object->Get(env->context(), name).ToLocal(&value)) return false;
   if (!value->IsUndefined()) {
-    CHECK(value->IsArrayBufferView());
+    if (!value->IsArrayBufferView()) {
+      Utf8Value nameStr(env->isolate(), name);
+      THROW_ERR_INVALID_ARG_VALUE(
+          env, "The %s option must be an ArrayBufferView", *nameStr);
+      return false;
+    }
     Store store(value.As<ArrayBufferView>());
-    CHECK_EQ(store.length(), TokenSecret::QUIC_TOKENSECRET_LEN);
+    if (store.length() != TokenSecret::QUIC_TOKENSECRET_LEN) {
+      Utf8Value nameStr(env->isolate(), name);
+      THROW_ERR_INVALID_ARG_VALUE(
+          env,
+          "The %s option must be an ArrayBufferView of length %d",
+          *nameStr,
+          TokenSecret::QUIC_TOKENSECRET_LEN);
+      return false;
+    }
     ngtcp2_vec buf = store;
-    options->*member = buf.base;
+    TokenSecret secret(buf.base);
+    options->*member = secret;
   }
   return true;
 }
@@ -204,6 +262,26 @@ Maybe<Endpoint::Options> Endpoint::Options::From(Environment* env,
     return Nothing<Options>();
   }
 
+  Local<Value> address;
+  if (!params->Get(env->context(), env->address_string()).ToLocal(&address)) {
+    return Nothing<Options>();
+  }
+  if (!address->IsUndefined()) {
+    if (!SocketAddressBase::HasInstance(env, address)) {
+      THROW_ERR_INVALID_ARG_TYPE(env,
+                                 "The address option must be a SocketAddress");
+      return Nothing<Options>();
+    }
+    auto addr = FromJSObject<SocketAddressBase>(address.As<v8::Object>());
+    options.local_address = addr->address();
+  } else {
+    options.local_address = std::make_shared<SocketAddress>();
+    if (!SocketAddress::New("127.0.0.1", 0, options.local_address.get())) {
+      THROW_ERR_INVALID_ADDRESS(env);
+      return Nothing<Options>();
+    }
+  }
+
   return Just<Options>(options);
 
 #undef SET
@@ -233,16 +311,15 @@ class Endpoint::UDP::Impl final : public HandleWrap {
     return tmpl;
   }
 
-  static BaseObjectPtr<Impl> Create(Endpoint* endpoint) {
+  static Impl* Create(Endpoint* endpoint) {
     Local<Object> obj;
     if (!GetConstructorTemplate(endpoint->env())
              ->InstanceTemplate()
              ->NewInstance(endpoint->env()->context())
              .ToLocal(&obj)) {
-      return BaseObjectPtr<Impl>();
+      return nullptr;
     }
-
-    return MakeDetachedBaseObject<Impl>(endpoint, obj);
+    return new Impl(endpoint, obj);
   }
 
   static Impl* From(uv_udp_t* handle) {
@@ -268,10 +345,6 @@ class Endpoint::UDP::Impl final : public HandleWrap {
   SET_SELF_SIZE(Impl)
 
  private:
-  static void ClosedCb(uv_handle_t* handle) {
-    std::unique_ptr<Impl> ptr(From(handle));
-  }
-
   static void OnAlloc(uv_handle_t* handle,
                       size_t suggested_size,
                       uv_buf_t* buf) {
@@ -309,7 +382,7 @@ class Endpoint::UDP::Impl final : public HandleWrap {
 };
 
 Endpoint::UDP::UDP(Endpoint* endpoint) : impl_(Impl::Create(endpoint)) {
-  endpoint->env()->AddCleanupHook(CleanupHook, this);
+  DCHECK(impl_);
 }
 
 Endpoint::UDP::~UDP() {
@@ -318,12 +391,12 @@ Endpoint::UDP::~UDP() {
 
 int Endpoint::UDP::Bind(const Endpoint::Options& options) {
   if (is_bound_) return UV_EALREADY;
-  if (is_closed() || impl_->IsHandleClosing()) return UV_EBADF;
+  if (is_closed_or_closing()) return UV_EBADF;
 
   int flags = 0;
-  if (options.local_address.family() == AF_INET6 && options.ipv6_only)
+  if (options.local_address->family() == AF_INET6 && options.ipv6_only)
     flags |= UV_UDP_IPV6ONLY;
-  int err = uv_udp_bind(&impl_->handle_, options.local_address.data(), flags);
+  int err = uv_udp_bind(&impl_->handle_, options.local_address->data(), flags);
   int size;
 
   if (!err) {
@@ -353,15 +426,19 @@ int Endpoint::UDP::Bind(const Endpoint::Options& options) {
 }
 
 void Endpoint::UDP::Ref() {
-  if (!is_closed()) uv_ref(reinterpret_cast<uv_handle_t*>(&impl_->handle_));
+  if (!is_closed_or_closing()) {
+    uv_ref(reinterpret_cast<uv_handle_t*>(&impl_->handle_));
+  }
 }
 
 void Endpoint::UDP::Unref() {
-  if (!is_closed()) uv_unref(reinterpret_cast<uv_handle_t*>(&impl_->handle_));
+  if (!is_closed_or_closing()) {
+    uv_unref(reinterpret_cast<uv_handle_t*>(&impl_->handle_));
+  }
 }
 
 int Endpoint::UDP::Start() {
-  if (is_closed() || impl_->IsHandleClosing()) return UV_EBADF;
+  if (is_closed_or_closing()) return UV_EBADF;
   if (is_started_) return 0;
   int err = uv_udp_recv_start(&impl_->handle_, Impl::OnAlloc, Impl::OnReceive);
   is_started_ = (err == 0);
@@ -369,16 +446,17 @@ int Endpoint::UDP::Start() {
 }
 
 void Endpoint::UDP::Stop() {
-  if (is_closed() || impl_->IsHandleClosing() || !is_started_) return;
+  if (is_closed_or_closing() || !is_started_) return;
   USE(uv_udp_recv_stop(&impl_->handle_));
   is_started_ = false;
 }
 
 void Endpoint::UDP::Close() {
-  if (is_closed() || impl_->IsHandleClosing()) return;
+  if (is_closed_or_closing()) return;
+  DCHECK(impl_);
   Stop();
   is_bound_ = false;
-  impl_->env()->RemoveCleanupHook(CleanupHook, this);
+  is_closed_ = true;
   impl_->Close();
   impl_.reset();
 }
@@ -388,20 +466,26 @@ bool Endpoint::UDP::is_bound() const {
 }
 
 bool Endpoint::UDP::is_closed() const {
-  return !impl_;
+  return is_closed_;
 }
+
+bool Endpoint::UDP::is_closed_or_closing() const {
+  if (is_closed() || !impl_) return true;
+  return impl_->IsHandleClosing();
+}
+
 Endpoint::UDP::operator bool() const {
-  return !impl_;
+  return impl_;
 }
 
 SocketAddress Endpoint::UDP::local_address() const {
-  CHECK(!is_closed() && is_bound());
+  DCHECK(!is_closed_or_closing() && is_bound());
   return SocketAddress::FromSockName(impl_->handle_);
 }
 
 int Endpoint::UDP::Send(BaseObjectPtr<Packet> packet) {
-  if (is_closed() || impl_->IsHandleClosing()) return UV_EBADF;
-  CHECK(packet && !packet->is_sending());
+  if (is_closed_or_closing()) return UV_EBADF;
+  DCHECK(packet && !packet->is_sending());
   uv_buf_t buf = *packet;
   return packet->Dispatch(
       uv_udp_send,
@@ -419,10 +503,6 @@ void Endpoint::UDP::MemoryInfo(MemoryTracker* tracker) const {
   if (impl_) tracker->TrackField("impl", impl_);
 }
 
-void Endpoint::UDP::CleanupHook(void* data) {
-  static_cast<UDP*>(data)->Close();
-}
-
 // ============================================================================
 
 bool Endpoint::HasInstance(Environment* env, Local<Value> value) {
@@ -434,7 +514,7 @@ Local<FunctionTemplate> Endpoint::GetConstructorTemplate(Environment* env) {
   auto tmpl = state.endpoint_constructor_template();
   if (tmpl.IsEmpty()) {
     auto isolate = env->isolate();
-    tmpl = NewFunctionTemplate(isolate, IllegalConstructor);
+    tmpl = NewFunctionTemplate(isolate, New);
     tmpl->Inherit(AsyncWrap::GetConstructorTemplate(env));
     tmpl->SetClassName(state.endpoint_string());
     tmpl->InstanceTemplate()->SetInternalFieldCount(
@@ -444,54 +524,70 @@ Local<FunctionTemplate> Endpoint::GetConstructorTemplate(Environment* env) {
     SetProtoMethod(isolate, tmpl, "connect", DoConnect);
     SetProtoMethod(isolate, tmpl, "markBusy", MarkBusy);
     SetProtoMethod(isolate, tmpl, "ref", Ref);
-    SetProtoMethod(isolate, tmpl, "unref", Unref);
     SetProtoMethodNoSideEffect(isolate, tmpl, "address", LocalAddress);
     state.set_endpoint_constructor_template(tmpl);
   }
   return tmpl;
 }
 
-void Endpoint::Initialize(Environment* env, Local<Object> target) {
-  SetMethod(env->context(), target, "createEndpoint", CreateEndpoint);
+void Endpoint::InitPerIsolate(IsolateData* data, Local<ObjectTemplate> target) {
+  // TODO(@jasnell): Implement the per-isolate state
+}
+
+void Endpoint::InitPerContext(Realm* realm, Local<Object> target) {
+#define V(name, str)                                                           \
+  NODE_DEFINE_CONSTANT(target, QUIC_CC_ALGO_##name);                           \
+  NODE_DEFINE_STRING_CONSTANT(target, "QUIC_CC_ALGO_" #name "_STR", #str);
+  ENDPOINT_CC(V)
+#undef V
 
 #define V(name, _) IDX_STATS_ENDPOINT_##name,
-  enum EndpointStatsIdx { ENDPOINT_STATS(V) IDX_STATS_ENDPOINT_COUNT };
+  enum IDX_STATS_ENDPONT { ENDPOINT_STATS(V) IDX_STATS_ENDPOINT_COUNT };
+  NODE_DEFINE_CONSTANT(target, IDX_STATS_ENDPOINT_COUNT);
 #undef V
 
-#define V(name, key, __)                                                       \
-  auto IDX_STATE_ENDPOINT_##name = offsetof(Endpoint::State, key);
+#define V(name, key) NODE_DEFINE_CONSTANT(target, IDX_STATS_ENDPOINT_##name);
+  ENDPOINT_STATS(V);
+#undef V
+
+#define V(name, key, type)                                                     \
+  static constexpr auto IDX_STATE_ENDPOINT_##name =                            \
+      offsetof(Endpoint::State, key);                                          \
+  static constexpr auto IDX_STATE_ENDPOINT_##name##_SIZE = sizeof(type);       \
+  NODE_DEFINE_CONSTANT(target, IDX_STATE_ENDPOINT_##name);                     \
+  NODE_DEFINE_CONSTANT(target, IDX_STATE_ENDPOINT_##name##_SIZE);
   ENDPOINT_STATE(V)
 #undef V
 
-#define V(name, _) NODE_DEFINE_CONSTANT(target, IDX_STATS_ENDPOINT_##name);
-  ENDPOINT_STATS(V)
-#undef V
-#define V(name, _, __) NODE_DEFINE_CONSTANT(target, IDX_STATE_ENDPOINT_##name);
-  ENDPOINT_STATE(V)
-#undef V
+  NODE_DEFINE_CONSTANT(target, DEFAULT_MAX_CONNECTIONS);
+  NODE_DEFINE_CONSTANT(target, DEFAULT_MAX_CONNECTIONS_PER_HOST);
+  NODE_DEFINE_CONSTANT(target, DEFAULT_MAX_SOCKETADDRESS_LRU_SIZE);
+  NODE_DEFINE_CONSTANT(target, DEFAULT_MAX_STATELESS_RESETS);
+  NODE_DEFINE_CONSTANT(target, DEFAULT_MAX_RETRY_LIMIT);
+
+  static constexpr auto DEFAULT_RETRYTOKEN_EXPIRATION =
+      RetryToken::QUIC_DEFAULT_RETRYTOKEN_EXPIRATION / NGTCP2_SECONDS;
+  static constexpr auto DEFAULT_REGULARTOKEN_EXPIRATION =
+      RegularToken::QUIC_DEFAULT_REGULARTOKEN_EXPIRATION / NGTCP2_SECONDS;
+  static constexpr auto DEFAULT_MAX_PACKET_LENGTH = kDefaultMaxPacketLength;
+  NODE_DEFINE_CONSTANT(target, DEFAULT_RETRYTOKEN_EXPIRATION);
+  NODE_DEFINE_CONSTANT(target, DEFAULT_REGULARTOKEN_EXPIRATION);
+  NODE_DEFINE_CONSTANT(target, DEFAULT_MAX_PACKET_LENGTH);
+
+  SetConstructorFunction(realm->context(),
+                         target,
+                         "Endpoint",
+                         GetConstructorTemplate(realm->env()));
 }
 
 void Endpoint::RegisterExternalReferences(ExternalReferenceRegistry* registry) {
-  registry->Register(CreateEndpoint);
+  registry->Register(New);
   registry->Register(DoConnect);
   registry->Register(DoListen);
   registry->Register(DoCloseGracefully);
   registry->Register(LocalAddress);
   registry->Register(Ref);
-  registry->Register(Unref);
-}
-
-BaseObjectPtr<Endpoint> Endpoint::Create(Environment* env,
-                                         const Endpoint::Options& options) {
-  Local<Object> obj;
-  if (!GetConstructorTemplate(env)
-           ->InstanceTemplate()
-           ->NewInstance(env->context())
-           .ToLocal(&obj)) {
-    return BaseObjectPtr<Endpoint>();
-  }
-
-  return MakeDetachedBaseObject<Endpoint>(env, obj, options);
+  registry->Register(MarkBusy);
 }
 
 Endpoint::Endpoint(Environment* env,
@@ -500,7 +596,7 @@ Endpoint::Endpoint(Environment* env,
     : AsyncWrap(env, object, AsyncWrap::PROVIDER_QUIC_ENDPOINT),
       stats_(env->isolate()),
       state_(env->isolate()),
-      options_(std::move(options)),
+      options_(options),
       udp_(this),
       addrLRU_(options_.address_lru_size) {
   MakeWeak();
@@ -516,15 +612,8 @@ Endpoint::Endpoint(Environment* env,
   defineProperty(env->stats_string(), stats_.GetArrayBuffer());
 }
 
-Endpoint::~Endpoint() {
-  udp_.Close();
-  DCHECK_EQ(state_->pending_callbacks, 0);
-  DCHECK(sessions_.empty());
-  DCHECK(is_closed());
-}
-
 SocketAddress Endpoint::local_address() const {
-  CHECK(!is_closed());
+  DCHECK(!is_closed() && !is_closing());
   return udp_.local_address();
 }
 
@@ -562,7 +651,7 @@ void Endpoint::RemoveSession(const CID& cid) {
   if (!session) return;
   DecrementSocketAddressCounter(session->remote_address());
   sessions_.erase(cid);
-  if (state_->waiting_for_callbacks == 1) MaybeDestroy();
+  if (state_->closing == 1) MaybeDestroy();
 }
 
 BaseObjectPtr<Session> Endpoint::FindSession(const CID& cid) {
@@ -764,18 +853,17 @@ BaseObjectPtr<Session> Endpoint::Connect(
 }
 
 void Endpoint::MaybeDestroy() {
-  if (!is_closing() && sessions_.empty() && state_->pending_callbacks == 0 &&
+  if (!is_closed() && sessions_.empty() && state_->pending_callbacks == 0 &&
       state_->listening == 0) {
     Destroy();
   }
 }
 
 void Endpoint::Destroy(CloseContext context, int status) {
-  if (is_closed() || is_closing()) return;
+  if (is_closed()) return;
 
   STAT_RECORD_TIMESTAMP(Stats, destroyed_at);
 
-  state_->closing = 1;
   state_->listening = 0;
 
   close_context_ = context;
@@ -790,7 +878,7 @@ void Endpoint::Destroy(CloseContext context, int status) {
   for (auto& session : sessions)
     session.second->Close(Session::CloseMethod::SILENT);
   sessions.clear();
-  CHECK(sessions_.empty());
+  DCHECK(sessions_.empty());
   token_map_.clear();
   dcid_to_scid_.clear();
 
@@ -804,10 +892,10 @@ void Endpoint::Destroy(CloseContext context, int status) {
 }
 
 void Endpoint::CloseGracefully() {
-  if (!is_closed() && !is_closing() && state_->waiting_for_callbacks == 0) {
-    state_->listening = 0;
-    state_->waiting_for_callbacks = 1;
-  }
+  if (is_closed() || is_closing()) return;
+
+  state_->listening = 0;
+  state_->closing = 1;
 
   // Maybe we can go ahead and destroy now?
   MaybeDestroy();
@@ -927,7 +1015,7 @@ void Endpoint::Receive(const uv_buf_t& buf,
 
           if (options_.validate_address) {
             // If there is no token, generate and send one.
-            if (hd.token.len == 0) {
+            if (hd.tokenlen == 0) {
               SendRetry(PathDescriptor{
                   version,
                   dcid,
@@ -942,9 +1030,9 @@ void Endpoint::Receive(const uv_buf_t& buf,
 
             // We have two kinds of tokens, each prefixed with a different magic
             // byte.
-            switch (hd.token.base[0]) {
+            switch (hd.token[0]) {
               case RetryToken::kTokenMagic: {
-                RetryToken token(hd.token.base, hd.token.len);
+                RetryToken token(hd.token, hd.tokenlen);
                 auto ocid = token.Validate(
                     version,
                     remote_address,
@@ -970,7 +1058,7 @@ void Endpoint::Receive(const uv_buf_t& buf,
                 break;
               }
               case RegularToken::kTokenMagic: {
-                RegularToken token(hd.token.base, hd.token.len);
+                RegularToken token(hd.token, hd.tokenlen);
                 if (!token.Validate(
                         version,
                         remote_address,
@@ -987,8 +1075,8 @@ void Endpoint::Receive(const uv_buf_t& buf,
                   // if a retry is sent.
                   return true;
                 }
-                hd.token.base = nullptr;
-                hd.token.len = 0;
+                hd.token = nullptr;
+                hd.tokenlen = 0;
                 break;
               }
               default: {
@@ -1008,7 +1096,7 @@ void Endpoint::Receive(const uv_buf_t& buf,
             // so we don't have to do this dance again for this endpoint
             // instance.
             addrLRU_.Upsert(remote_address)->validated = true;
-          } else if (hd.token.len > 0) {
+          } else if (hd.tokenlen > 0) {
             // If validation is turned off and there is a token, that's weird.
             // The peer should only have a token if we sent it to them and we
             // wouldn't have sent it unless validation was turned on. Let's
@@ -1188,7 +1276,7 @@ void Endpoint::PacketDone(int status) {
   if (is_closed()) return;
   state_->pending_callbacks--;
   // Can we go ahead and close now?
-  if (state_->waiting_for_callbacks == 1) {
+  if (state_->closing == 1) {
     // MaybeDestroy potentially creates v8 handles so let's make sure
     // we have a HandleScope on the stack.
     HandleScope scope(env()->isolate());
@@ -1267,18 +1355,17 @@ void Endpoint::EmitClose(CloseContext context, int status) {
 // ======================================================================================
 // Endpoint JavaScript API
 
-void Endpoint::CreateEndpoint(const FunctionCallbackInfo<Value>& args) {
-  CHECK(!args.IsConstructCall());
+void Endpoint::New(const FunctionCallbackInfo<Value>& args) {
+  DCHECK(args.IsConstructCall());
   auto env = Environment::GetCurrent(args);
-  CHECK(args[0]->IsObject());
   Options options;
+  // Options::From will validate that args[0] is the correct type.
   if (!Options::From(env, args[0]).To(&options)) {
     // There was an error. Just exit to propagate.
     return;
   }
 
-  auto endpoint = Endpoint::Create(env, options);
-  if (endpoint) args.GetReturnValue().Set(endpoint->object());
+  new Endpoint(env, args.This(), options);
 }
 
 void Endpoint::DoConnect(const FunctionCallbackInfo<Value>& args) {
@@ -1342,23 +1429,21 @@ void Endpoint::LocalAddress(const FunctionCallbackInfo<Value>& args) {
   auto env = Environment::GetCurrent(args);
   Endpoint* endpoint;
   ASSIGN_OR_RETURN_UNWRAP(&endpoint, args.Holder());
-  if (endpoint->is_closed()) return;
-  auto local_address = endpoint->local_address();
+  if (endpoint->is_closed() || !endpoint->udp_.is_bound()) return;
   auto addr = SocketAddressBase::Create(
-      env, std::make_shared<SocketAddress>(local_address));
+      env, std::make_shared<SocketAddress>(endpoint->local_address()));
   if (addr) args.GetReturnValue().Set(addr->object());
 }
 
 void Endpoint::Ref(const FunctionCallbackInfo<Value>& args) {
   Endpoint* endpoint;
   ASSIGN_OR_RETURN_UNWRAP(&endpoint, args.Holder());
-  endpoint->udp_.Ref();
-}
-
-void Endpoint::Unref(const FunctionCallbackInfo<Value>& args) {
-  Endpoint* endpoint;
-  ASSIGN_OR_RETURN_UNWRAP(&endpoint, args.Holder());
-  endpoint->udp_.Unref();
+  auto env = Environment::GetCurrent(args);
+  if (args[0]->BooleanValue(env->isolate())) {
+    endpoint->udp_.Ref();
+  } else {
+    endpoint->udp_.Unref();
+  }
 }
 
 }  // namespace quic

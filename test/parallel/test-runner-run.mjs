@@ -176,6 +176,17 @@ describe('require(\'node:test\').run', { concurrency: true }, () => {
   });
 
   describe('AbortSignal', () => {
+    it('should accept a signal', async () => {
+      const stream = run({ signal: AbortSignal.timeout(50), files: [
+        fixtures.path('test-runner', 'never_ending_sync.js'),
+        fixtures.path('test-runner', 'never_ending_async.js'),
+      ] });
+      stream.on('test:fail', common.mustCall(2));
+      stream.on('test:pass', common.mustNotCall());
+      // eslint-disable-next-line no-unused-vars
+      for await (const _ of stream);
+    });
+
     it('should stop watch mode when abortSignal aborts', async () => {
       const controller = new AbortController();
       const result = await run({
@@ -454,5 +465,51 @@ describe('require(\'node:test\').run', { concurrency: true }, () => {
           code: 'ERR_INVALID_ARG_TYPE'
         }));
     });
+
+    it('should pass instance of stream to setup', async () => {
+      const stream = run({
+        files: [join(testFixtures, 'default-behavior/test/random.cjs')],
+        setup: common.mustCall((root) => {
+          assert.strictEqual(root.constructor.name, 'TestsStream');
+        }),
+      });
+      stream.on('test:fail', common.mustNotCall());
+      stream.on('test:pass', common.mustCall());
+      // eslint-disable-next-line no-unused-vars
+      for await (const _ of stream);
+    });
+  });
+
+  it('should run with no files', async () => {
+    const stream = run({
+      files: undefined
+    }).compose(tap);
+    stream.on('test:fail', common.mustNotCall());
+    stream.on('test:pass', common.mustNotCall());
+
+    // eslint-disable-next-line no-unused-vars
+    for await (const _ of stream);
+  });
+
+  it('should run with no files and use spec reporter', async () => {
+    const stream = run({
+      files: undefined
+    }).compose(spec);
+    stream.on('test:fail', common.mustNotCall());
+    stream.on('test:pass', common.mustNotCall());
+
+    // eslint-disable-next-line no-unused-vars
+    for await (const _ of stream);
+  });
+
+  it('should run with no files and use dot reporter', async () => {
+    const stream = run({
+      files: undefined
+    }).compose(dot);
+    stream.on('test:fail', common.mustNotCall());
+    stream.on('test:pass', common.mustNotCall());
+
+    // eslint-disable-next-line no-unused-vars
+    for await (const _ of stream);
   });
 });

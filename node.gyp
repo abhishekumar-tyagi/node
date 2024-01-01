@@ -112,6 +112,7 @@
       'src/node_main_instance.cc',
       'src/node_messaging.cc',
       'src/node_metadata.cc',
+      'src/node_modules.cc',
       'src/node_options.cc',
       'src/node_os.cc',
       'src/node_perf.cc',
@@ -142,6 +143,7 @@
       'src/node_watchdog.cc',
       'src/node_worker.cc',
       'src/node_zlib.cc',
+      'src/path.cc',
       'src/permission/child_process_permission.cc',
       'src/permission/fs_permission.cc',
       'src/permission/inspector_permission.cc',
@@ -234,6 +236,7 @@
       'src/node_messaging.h',
       'src/node_metadata.h',
       'src/node_mutex.h',
+      'src/node_modules.h',
       'src/node_object_wrap.h',
       'src/node_options.h',
       'src/node_options-inl.h',
@@ -262,6 +265,7 @@
       'src/node_wasi.h',
       'src/node_watchdog.h',
       'src/node_worker.h',
+      'src/path.h',
       'src/permission/child_process_permission.h',
       'src/permission/fs_permission.h',
       'src/permission/inspector_permission.h',
@@ -375,6 +379,7 @@
       'src/quic/tlscontext.h',
       'src/quic/tokens.h',
       'src/quic/transportparams.h',
+      'src/quic/quic.cc',
     ],
     'node_cctest_sources': [
       'src/node_snapshot_stub.cc',
@@ -468,6 +473,9 @@
     },
 
     'conditions': [
+      ['target_arch=="arm64"', {
+        'cflags': ['-mbranch-protection=standard'],  # Pointer authentication.
+      }],
       ['OS in "aix os400"', {
         'ldflags': [
           '-Wl,-bnoerrmsg',
@@ -816,6 +824,7 @@
         'deps/googletest/googletest.gyp:gtest_prod',
         'deps/histogram/histogram.gyp:histogram',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
+        'deps/simdjson/simdjson.gyp:simdjson',
         'deps/simdutf/simdutf.gyp:simdutf',
         'deps/ada/ada.gyp:ada',
         'node_js2c#host',
@@ -1047,6 +1056,7 @@
         'deps/googletest/googletest.gyp:gtest_main',
         'deps/histogram/histogram.gyp:histogram',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
+        'deps/simdjson/simdjson.gyp:simdjson',
         'deps/simdutf/simdutf.gyp:simdutf',
         'deps/ada/ada.gyp:ada',
       ],

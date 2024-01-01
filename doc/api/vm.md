@@ -619,7 +619,10 @@ The identifier of the current module, as set in the constructor.
 
 <!-- YAML
 changes:
-  - version: v21.1.0
+  - version:
+    - v21.1.0
+    - v20.10.0
+    - v18.19.0
     pr-url: https://github.com/nodejs/node/pull/50141
     description: The option `extra.assert` is renamed to `extra.attributes`. The
                  former name is still provided for backward compatibility.
@@ -1052,7 +1055,7 @@ function with the given `params`.
 <!-- YAML
 added: v0.3.1
 changes:
-  - version: REPLACEME
+  - version: v21.2.0
     pr-url: https://github.com/nodejs/node/pull/50360
     description: The `importModuleDynamically` option is supported now.
   - version: v14.6.0

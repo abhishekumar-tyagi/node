@@ -147,8 +147,15 @@ class NODE_EXTERN_PRIVATE IsolateData : public MemoryRetainer {
   void MemoryInfo(MemoryTracker* tracker) const override;
   IsolateDataSerializeInfo Serialize(v8::SnapshotCreator* creator);
 
-  bool is_building_snapshot() const { return is_building_snapshot_; }
-  void set_is_building_snapshot(bool value) { is_building_snapshot_ = value; }
+  bool is_building_snapshot() const { return snapshot_config_.has_value(); }
+  const SnapshotConfig* snapshot_config() const {
+    return snapshot_config_.has_value() ? &(snapshot_config_.value()) : nullptr;
+  }
+  void set_snapshot_config(const SnapshotConfig* config) {
+    if (config != nullptr) {
+      snapshot_config_ = *config;  // Copy the config.
+    }
+  }
 
   uint16_t* embedder_id_for_cppgc() const;
   uint16_t* embedder_id_for_non_cppgc() const;
@@ -237,11 +244,13 @@ class NODE_EXTERN_PRIVATE IsolateData : public MemoryRetainer {
   uv_loop_t* const event_loop_;
   NodeArrayBufferAllocator* const node_allocator_;
   MultiIsolatePlatform* platform_;
+
   const SnapshotData* snapshot_data_;
+  std::optional<SnapshotConfig> snapshot_config_;
+
   std::unique_ptr<v8::CppHeap> cpp_heap_;
   std::shared_ptr<PerIsolateOptions> options_;
   worker::Worker* worker_context_ = nullptr;
-  bool is_building_snapshot_ = false;
   PerIsolateWrapperData* wrapper_data_;
 
   static Mutex isolate_data_mutex_;
@@ -526,6 +535,7 @@ struct SnapshotMetadata {
   std::string node_platform;
   // Result of v8::ScriptCompiler::CachedDataVersionTag().
   uint32_t v8_cache_version_tag;
+  SnapshotFlags flags;
 };
 
 struct SnapshotData {
@@ -934,6 +944,9 @@ class Environment : public MemoryRetainer {
   inline void RemoveCleanupHook(CleanupQueue::Callback cb, void* arg);
   void RunCleanup();
 
+  static void TracePromises(v8::PromiseHookType type,
+                            v8::Local<v8::Promise> promise,
+                            v8::Local<v8::Value> parent);
   static size_t NearHeapLimitCallback(void* data,
                                       size_t current_heap_limit,
                                       size_t initial_heap_limit);
@@ -1016,8 +1029,14 @@ class Environment : public MemoryRetainer {
   };
 
  private:
-  inline void ThrowError(v8::Local<v8::Value> (*fun)(v8::Local<v8::String>),
-                         const char* errmsg);
+  // V8 has changed the constructor of exceptions, support both APIs before Node
+  // updates to V8 12.1.
+  using V8ExceptionConstructorOld =
+      v8::Local<v8::Value> (*)(v8::Local<v8::String>);
+  using V8ExceptionConstructorNew =
+      v8::Local<v8::Value> (*)(v8::Local<v8::String>, v8::Local<v8::Value>);
+  inline void ThrowError(V8ExceptionConstructorOld fun, const char* errmsg);
+  inline void ThrowError(V8ExceptionConstructorNew fun, const char* errmsg);
   void TrackContext(v8::Local<v8::Context> context);
   void UntrackContext(v8::Local<v8::Context> context);
 
@@ -1088,6 +1107,7 @@ class Environment : public MemoryRetainer {
   uint32_t module_id_counter_ = 0;
   uint32_t script_id_counter_ = 0;
   uint32_t function_id_counter_ = 0;
+  uint32_t trace_promise_id_counter_ = 0;
 
   AliasedInt32Array exit_info_;
 

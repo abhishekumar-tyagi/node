@@ -119,7 +119,7 @@ platforms. This is true regardless of entries in the table below.
 | macOS            | arm64            | >= 11.0                           | Tier 1                                          |                                      |
 | SmartOS          | x64              | >= 18                             | Tier 2                                          |                                      |
 | AIX              | ppc64be >=power8 | >= 7.2 TL04                       | Tier 2                                          |                                      |
-| FreeBSD          | x64              | >= 12.4                           | Experimental                                    |                                      |
+| FreeBSD          | x64              | >= 13.2                           | Experimental                                    |                                      |
 
 [^1]: Older kernel versions may work. However official Node.js release
     binaries are [built on RHEL 8 systems](#official-binary-platforms-and-toolchains)
@@ -461,6 +461,12 @@ make docopen
 
 This will open a file URL to a one-page version of all the browsable HTML
 documents using the default browser.
+
+```bash
+make docclean
+```
+
+This will clean previously built doc.
 
 To test if Node.js was built correctly:
 

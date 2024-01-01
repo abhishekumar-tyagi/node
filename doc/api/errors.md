@@ -1710,6 +1710,12 @@ When setting the priority for an HTTP/2 stream, the stream may be marked as
 a dependency for a parent stream. This error code is used when an attempt is
 made to mark a stream and dependent of itself.
 
+<a id="ERR_HTTP2_TOO_MANY_CUSTOM_SETTINGS"></a>
+
+### `ERR_HTTP2_TOO_MANY_CUSTOM_SETTINGS`
+
+The number of supported custom settings (10) has been exceeded.
+
 <a id="ERR_HTTP2_TOO_MANY_INVALID_FRAMES"></a>
 
 ### `ERR_HTTP2_TOO_MANY_INVALID_FRAMES`
@@ -1777,7 +1783,10 @@ An import attribute is missing, preventing the specified module to be imported.
 ### `ERR_IMPORT_ATTRIBUTE_UNSUPPORTED`
 
 <!-- YAML
-added: v21.0.0
+added:
+  - v21.0.0
+  - v20.10.0
+  - v18.19.0
 -->
 
 An import attribute is not supported by this version of Node.js.
@@ -2938,9 +2947,7 @@ signal (such as [`subprocess.kill()`][]).
 [self-reference a package using its name][] and [define a custom subpath][] in
 the [`"exports"`][] field of the [`package.json`][] file.
 
-<!-- eslint-skip -->
-
-```js
+```mjs
 import './'; // unsupported
 import './index.js'; // supported
 import 'package-name'; // supported

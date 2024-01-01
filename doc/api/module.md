@@ -83,9 +83,13 @@ isBuiltin('wss'); // false
 ### `module.register(specifier[, parentURL][, options])`
 
 <!-- YAML
-added: v20.6.0
+added:
+  - v20.6.0
+  - v18.19.0
 changes:
-  - version: v20.8.0
+  - version:
+    - v20.8.0
+    - v18.19.0
     pr-url: https://github.com/nodejs/node/pull/49655
     description: Add support for WHATWG URL instances.
 -->
@@ -99,6 +103,10 @@ changes:
   URL, such as `import.meta.url`, you can pass that URL here. **Default:**
   `'data:'`
 * `options` {Object}
+  * `parentURL` {string|URL} If you want to resolve `specifier` relative to a
+    base URL, such as `import.meta.url`, you can pass that URL here. This
+    property is ignored if the `parentURL` is supplied as the second argument.
+    **Default:** `'data:'`
   * `data` {any} Any arbitrary, cloneable JavaScript value to pass into the
     [`initialize`][] hook.
   * `transferList` {Object\[]} [transferrable objects][] to be passed into the
@@ -153,7 +161,9 @@ import('node:fs').then((esmFS) => {
 <!-- YAML
 added: v8.8.0
 changes:
-  - version: v20.6.0
+  - version:
+    - v20.6.0
+    - v18.19.0
     pr-url: https://github.com/nodejs/node/pull/48842
     description: Added `initialize` hook to replace `globalPreload`.
   - version:
@@ -383,7 +393,9 @@ asynchronous operations (like `console.log`) to complete.
 #### `initialize()`
 
 <!-- YAML
-added: v20.6.0
+added:
+  - v20.6.0
+  - v18.19.0
 -->
 
 > Stability: 1.2 - Release candidate
@@ -458,7 +470,10 @@ register('./path-to-my-hooks.js', {
 
 <!-- YAML
 changes:
-  - version: v21.0.0
+  - version:
+    - v21.0.0
+    - v20.10.0
+    - v18.19.0
     pr-url: https://github.com/nodejs/node/pull/50140
     description: The property `context.importAssertions` is replaced with
                  `context.importAttributes`. Using the old name is still
@@ -622,7 +637,8 @@ Omitting vs providing a `source` for `'commonjs'` has very different effects:
   registered hooks. This behavior for nullish `source` is temporary — in the
   future, nullish `source` will not be supported.
 
-The Node.js internal `load` implementation, which is the value of `next` for the
+When `node` is run with `--experimental-default-type=commonjs`, the Node.js
+internal `load` implementation, which is the value of `next` for the
 last hook in the `load` chain, returns `null` for `source` when `format` is
 `'commonjs'` for backward compatibility. Here is an example hook that would
 opt-in to using the non-default behavior:

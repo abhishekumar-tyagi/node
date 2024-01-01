@@ -103,6 +103,47 @@ If this flag is passed, the behavior can still be set to not abort through
 [`process.setUncaughtExceptionCaptureCallback()`][] (and through usage of the
 `node:domain` module that uses it).
 
+### `--allow-addons`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+> Stability: 1.1 - Active development
+
+When using the [Permission Model][], the process will not be able to use
+native addons by default.
+Attempts to do so will throw an `ERR_DLOPEN_DISABLED` unless the
+user explicitly passes the `--allow-addons` flag when starting Node.js.
+
+Example:
+
+```cjs
+// Attempt to require an native addon
+require('nodejs-addon-example');
+```
+
+```console
+$ node --experimental-permission --allow-fs-read=* index.js
+node:internal/modules/cjs/loader:1319
+  return process.dlopen(module, path.toNamespacedPath(filename));
+                 ^
+
+Error: Cannot load native addon because loading addons is disabled.
+    at Module._extensions..node (node:internal/modules/cjs/loader:1319:18)
+    at Module.load (node:internal/modules/cjs/loader:1091:32)
+    at Module._load (node:internal/modules/cjs/loader:938:12)
+    at Module.require (node:internal/modules/cjs/loader:1115:19)
+    at require (node:internal/modules/helpers:130:18)
+    at Object.<anonymous> (/home/index.js:1:15)
+    at Module._compile (node:internal/modules/cjs/loader:1233:14)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1287:10)
+    at Module.load (node:internal/modules/cjs/loader:1091:32)
+    at Module._load (node:internal/modules/cjs/loader:938:12) {
+  code: 'ERR_DLOPEN_DISABLED'
+}
+```
+
 ### `--allow-child-process`
 
 <!-- YAML
@@ -166,7 +207,7 @@ The valid arguments for the `--allow-fs-read` flag are:
   Example `--allow-fs-read=/folder1/ --allow-fs-read=/folder1/`
 
 Paths delimited by comma (`,`) are no longer allowed.
-When passing a single flag with a comma a warning will be diplayed
+When passing a single flag with a comma a warning will be displayed.
 
 Examples can be found in the [File System Permissions][] documentation.
 
@@ -220,7 +261,7 @@ The valid arguments for the `--allow-fs-write` flag are:
   Example `--allow-fs-read=/folder1/ --allow-fs-read=/folder1/`
 
 Paths delimited by comma (`,`) are no longer allowed.
-When passing a single flag with a comma a warning will be diplayed
+When passing a single flag with a comma a warning will be displayed.
 
 Examples can be found in the [File System Permissions][] documentation.
 
@@ -322,6 +363,30 @@ Currently the support for run-time snapshot is experimental in that:
    crashes or buggy behaviors occur when building a snapshot, please file
    a report in the [Node.js issue tracker][] and link to it in the
    [tracking issue for user-land snapshots][].
+
+### `--build-snapshot-config`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+> Stability: 1 - Experimental
+
+Specifies the path to a JSON configuration file which configures snapshot
+creation behavior.
+
+The following options are currently supported:
+
+* `builder` {string} Required. Provides the name to the script that is executed
+  before building the snapshot, as if [`--build-snapshot`][] had been passed
+  with `builder` as the main script name.
+* `withoutCodeCache` {boolean} Optional. Including the code cache reduces the
+  time spent on compiling functions included in the snapshot at the expense
+  of a bigger snapshot size and potentially breaking portability of the
+  snapshot.
+
+When using this flag, additional script files provided on the command line will
+not be executed and instead be interpreted as regular command line arguments.
 
 ### `-c`, `--check`
 
@@ -443,6 +508,57 @@ Affects the default output directory of:
 * [`--heap-prof-dir`][]
 * [`--redirect-warnings`][]
 
+### `--disable-warning=code-or-type`
+
+> Stability: 1.1 - Active development
+
+<!-- YAML
+added: v21.3.0
+-->
+
+Disable specific process warnings by `code` or `type`.
+
+Warnings emitted from [`process.emitWarning()`][emit_warning] may contain a
+`code` and a `type`. This option will not-emit warnings that have a matching
+`code` or `type`.
+
+List of [deprecation warnings][].
+
+The Node.js core warning types are: `DeprecationWarning` and
+`ExperimentalWarning`
+
+For example, the following script will not emit
+[DEP0025 `require('node:sys')`][DEP0025 warning] when executed with
+`node --disable-warning=DEP0025`:
+
+```mjs
+import sys from 'node:sys';
+```
+
+```cjs
+const sys = require('node:sys');
+```
+
+For example, the following script will emit the
+[DEP0025 `require('node:sys')`][DEP0025 warning], but not any Experimental
+Warnings (such as
+[ExperimentalWarning: `vm.measureMemory` is an experimental feature][]
+in <=v21) when executed with `node --disable-warning=ExperimentalWarnings`:
+
+```mjs
+import sys from 'node:sys';
+import vm from 'node:vm';
+
+vm.measureMemory();
+```
+
+```cjs
+const sys = require('node:sys');
+const vm = require('node:vm');
+
+vm.measureMemory();
+```
+
 ### `--disable-proto=mode`
 
 <!-- YAML
@@ -523,8 +639,19 @@ application reference the transpiled code, not the original source position.
 `--enable-source-maps` enables caching of Source Maps and makes a best
 effort to report stack traces relative to the original source file.
 
-Overriding `Error.prepareStackTrace` prevents `--enable-source-maps` from
-modifying the stack trace.
+Overriding `Error.prepareStackTrace` may prevent `--enable-source-maps` from
+modifying the stack trace. Call and return the results of the original
+`Error.prepareStackTrace` in the overriding function to modify the stack trace
+with source maps.
+
+```js
+const originalPrepareStackTrace = Error.prepareStackTrace;
+Error.prepareStackTrace = (error, trace) => {
+  // Modify error and trace and format stack trace with
+  // original Error.prepareStackTrace.
+  return originalPrepareStackTrace(error, trace);
+};
+```
 
 Note, enabling source maps can introduce latency to your application
 when `Error.stack` is accessed. If you access `Error.stack` frequently
@@ -595,6 +722,8 @@ and `"` are usable.
 <!-- YAML
 added:
   - v21.0.0
+  - v20.10.0
+  - v18.19.0
 -->
 
 > Stability: 1.0 - Early development
@@ -625,6 +754,7 @@ JavaScript.
 <!-- YAML
 added:
   - v21.1.0
+  - v20.10.0
 -->
 
 > Stability: 1.0 - Early development
@@ -653,7 +783,9 @@ added:
   - v13.9.0
   - v12.16.2
 changes:
-  - version: v20.6.0
+  - version:
+    - v20.6.0
+    - v18.19.0
     pr-url: https://github.com/nodejs/node/pull/49028
     description: synchronous import.meta.resolve made available by default, with
                  the flag retained for enabling the experimental second argument
@@ -800,7 +932,9 @@ Enable experimental WebAssembly module support.
 ### `--experimental-websocket`
 
 <!-- YAML
-added: v21.0.0
+added:
+  - v21.0.0
+  - v20.10.0
 -->
 
 Enable experimental [`WebSocket`][] support.
@@ -1021,12 +1155,13 @@ Modules preloaded with `--require` will run before modules preloaded with `--imp
 added: v12.0.0
 -->
 
-This configures Node.js to interpret string input as CommonJS or as an ES
-module. String input is input via `--eval`, `--print`, or `STDIN`.
+This configures Node.js to interpret `--eval` or `STDIN` input as CommonJS or
+as an ES module. Valid values are `"commonjs"` or `"module"`. The default is
+`"commonjs"` unless [`--experimental-default-type=module`][] is used.
 
-Valid values are `"commonjs"` and `"module"`. The default is `"commonjs"`.
-
-The REPL does not support this option.
+The REPL does not support this option. Usage of `--input-type=module` with
+[`--print`][] will throw an error, as `--print` does not support ES module
+syntax.
 
 ### `--insecure-http-parser`
 
@@ -1131,12 +1266,12 @@ Opens the REPL even if stdin does not appear to be a terminal.
 added: v12.0.0
 -->
 
+> Stability: 1 - Experimental. This flag is inherited from V8 and is subject to
+> change upstream.
+
 Disable [runtime allocation of executable memory][jitless]. This may be
 required on some platforms for security reasons. It can also reduce attack
 surface on other platforms, but the performance impact may be severe.
-
-This flag is inherited from V8 and is subject to change upstream. It may
-disappear in a non-semver-major release.
 
 ### `--max-http-header-size=size`
 
@@ -1195,6 +1330,16 @@ added: v19.0.0
 -->
 
 Disable exposition of [CustomEvent Web API][] on the global scope.
+
+### `--no-experimental-global-navigator`
+
+<!-- YAML
+added: v21.2.0
+-->
+
+> Stability: 1 - Experimental
+
+Disable exposition of [Navigator API][] on the global scope.
 
 ### `--no-experimental-global-webcrypto`
 
@@ -1685,7 +1830,10 @@ for more details.
 ### `--test-concurrency`
 
 <!-- YAML
-added: v21.0.0
+added:
+  - v21.0.0
+  - v20.10.0
+  - v18.19.0
 -->
 
 The maximum number of test files that the test runner CLI will execute
@@ -1753,7 +1901,9 @@ The destination for the corresponding test reporter. See the documentation on
 ### `--test-shard`
 
 <!-- YAML
-added: v20.5.0
+added:
+  - v20.5.0
+  - v18.19.0
 -->
 
 Test suite shard to execute in a format of `<index>/<total>`, where
@@ -1770,6 +1920,15 @@ node --test --test-shard=1/3
 node --test --test-shard=2/3
 node --test --test-shard=3/3
 ```
+
+### `--test-timeout`
+
+<!-- YAML
+added: v21.2.0
+-->
+
+A number of milliseconds the test execution will fail after. If unspecified,
+subtests inherit this value from their parent. The default value is `Infinity`.
 
 ### `--throw-deprecation`
 
@@ -2301,6 +2460,7 @@ Node.js options that are allowed are:
 
 <!-- node-options-node start -->
 
+* `--allow-addons`
 * `--allow-child-process`
 * `--allow-fs-read`
 * `--allow-fs-write`
@@ -2308,6 +2468,7 @@ Node.js options that are allowed are:
 * `--conditions`, `-C`
 * `--diagnostic-dir`
 * `--disable-proto`
+* `--disable-warning`
 * `--dns-result-order`
 * `--enable-fips`
 * `--enable-network-family-autoselection`
@@ -2350,6 +2511,7 @@ Node.js options that are allowed are:
 * `--no-deprecation`
 * `--no-experimental-fetch`
 * `--no-experimental-global-customevent`
+* `--no-experimental-global-navigator`
 * `--no-experimental-global-webcrypto`
 * `--no-experimental-repl-await`
 * `--no-extra-info-on-fatal-exception`
@@ -2759,12 +2921,15 @@ done
 [CommonJS]: modules.md
 [CommonJS module]: modules.md
 [CustomEvent Web API]: https://dom.spec.whatwg.org/#customevent
+[DEP0025 warning]: deprecations.md#dep0025-requirenodesys
 [ECMAScript module]: esm.md#modules-ecmascript-modules
+[ExperimentalWarning: `vm.measureMemory` is an experimental feature]: vm.md#vmmeasurememoryoptions
 [Fetch API]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
 [File System Permissions]: permissions.md#file-system-permissions
 [Module customization hooks]: module.md#customization-hooks
 [Module customization hooks: enabling]: module.md#enabling
 [Modules loaders]: packages.md#modules-loaders
+[Navigator API]: globals.md#navigator
 [Node.js issue tracker]: https://github.com/nodejs/node/issues
 [OSSL_PROVIDER-legacy]: https://www.openssl.org/docs/man3.0/man7/OSSL_PROVIDER-legacy.html
 [Permission Model]: permissions.md#permission-model
@@ -2780,6 +2945,7 @@ done
 [`--allow-fs-read`]: #--allow-fs-read
 [`--allow-fs-write`]: #--allow-fs-write
 [`--allow-worker`]: #--allow-worker
+[`--build-snapshot`]: #--build-snapshot
 [`--cpu-prof-dir`]: #--cpu-prof-dir
 [`--diagnostic-dir`]: #--diagnostic-dirdirectory
 [`--experimental-default-type=module`]: #--experimental-default-typetype
@@ -2789,6 +2955,7 @@ done
 [`--import`]: #--importmodule
 [`--openssl-config`]: #--openssl-configfile
 [`--preserve-symlinks`]: #--preserve-symlinks
+[`--print`]: #-p---print-script
 [`--redirect-warnings`]: #--redirect-warningsfile
 [`--require`]: #-r---require-module
 [`Atomics.wait()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Atomics/wait
@@ -2814,6 +2981,7 @@ done
 [context-aware]: addons.md#context-aware-addons
 [debugger]: debugger.md
 [debugging security implications]: https://nodejs.org/en/docs/guides/debugging-getting-started/#security-implications
+[deprecation warnings]: deprecations.md#list-of-deprecated-apis
 [emit_warning]: process.md#processemitwarningwarning-options
 [environment_variables]: #environment-variables
 [filtering tests by name]: test.md#filtering-tests-by-name

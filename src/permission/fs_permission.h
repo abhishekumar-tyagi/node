@@ -15,9 +15,11 @@ namespace permission {
 
 class FSPermission final : public PermissionBase {
  public:
-  void Apply(const std::vector<std::string>& allow,
+  void Apply(Environment* env,
+             const std::vector<std::string>& allow,
              PermissionScope scope) override;
-  bool is_granted(PermissionScope perm, const std::string_view& param) override;
+  bool is_granted(PermissionScope perm,
+                  const std::string_view& param) const override;
 
   struct RadixTree {
     struct Node {
@@ -45,8 +47,8 @@ class FSPermission final : public PermissionBase {
         }
 
         // swap prefix
-        unsigned int i = 0;
-        unsigned int prefix_len = prefix.length();
+        size_t i = 0;
+        size_t prefix_len = prefix.length();
         for (; i < child->prefix.length(); ++i) {
           if (i > prefix_len || prefix[i] != child->prefix[i]) {
             std::string parent_prefix = child->prefix.substr(0, i);
@@ -72,9 +74,17 @@ class FSPermission final : public PermissionBase {
         return wildcard_child;
       }
 
-      Node* NextNode(const std::string& path, unsigned int idx) {
+      Node* NextNode(const std::string& path, size_t idx) const {
         if (idx >= path.length()) {
           return nullptr;
+        }
+
+        // wildcard node takes precedence
+        if (children.size() > 1) {
+          auto it = children.find('*');
+          if (it != children.end()) {
+            return it->second;
+          }
         }
 
         auto it = children.find(path[idx]);
@@ -83,8 +93,8 @@ class FSPermission final : public PermissionBase {
         }
         auto child = it->second;
         // match prefix
-        unsigned int prefix_len = child->prefix.length();
-        for (unsigned int i = 0; i < path.length(); ++i) {
+        size_t prefix_len = child->prefix.length();
+        for (size_t i = 0; i < path.length(); ++i) {
           if (i >= prefix_len || child->prefix[i] == '*') {
             return child;
           }
@@ -115,7 +125,7 @@ class FSPermission final : public PermissionBase {
       // ---> '\000' ASCII (0) || \0
       // ---> er
       // ---> n
-      bool IsEndNode() {
+      bool IsEndNode() const {
         if (children.size() == 0) {
           return true;
         }
@@ -126,8 +136,8 @@ class FSPermission final : public PermissionBase {
     RadixTree();
     ~RadixTree();
     void Insert(const std::string& s);
-    bool Lookup(const std::string_view& s) { return Lookup(s, false); }
-    bool Lookup(const std::string_view& s, bool when_empty_return);
+    bool Lookup(const std::string_view& s) const { return Lookup(s, false); }
+    bool Lookup(const std::string_view& s, bool when_empty_return) const;
 
    private:
     Node* root_node_;

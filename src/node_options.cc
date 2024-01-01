@@ -391,6 +391,11 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::experimental_global_customevent,
             kAllowedInEnvvar,
             true);
+  AddOption("--experimental-global-navigator",
+            "expose experimental Navigator API on the global scope",
+            &EnvironmentOptions::experimental_global_navigator,
+            kAllowedInEnvvar,
+            true);
   AddOption("--experimental-global-webcrypto",
             "expose experimental Web Crypto API on the global scope",
             &EnvironmentOptions::experimental_global_web_crypto,
@@ -441,6 +446,10 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
   AddOption("--allow-fs-write",
             "allow permissions to write in the filesystem",
             &EnvironmentOptions::allow_fs_write,
+            kAllowedInEnvvar);
+  AddOption("--allow-addons",
+            "allow use of addons when any permissions are set",
+            &EnvironmentOptions::allow_addons,
             kAllowedInEnvvar);
   AddOption("--allow-child-process",
             "allow use of child process when any permissions are set",
@@ -522,6 +531,10 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::warnings,
             kAllowedInEnvvar,
             true);
+  AddOption("--disable-warning",
+            "silence specific process warnings",
+            &EnvironmentOptions::disable_warnings,
+            kAllowedInEnvvar);
   AddOption("--force-context-aware",
             "disable loading non-context-aware addons",
             &EnvironmentOptions::force_context_aware,
@@ -603,6 +616,9 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
   AddOption("--test-concurrency",
             "specify test runner concurrency",
             &EnvironmentOptions::test_runner_concurrency);
+  AddOption("--test-timeout",
+            "specify test runner timeout",
+            &EnvironmentOptions::test_runner_timeout);
   AddOption("--experimental-test-coverage",
             "enable code coverage in the test runner",
             &EnvironmentOptions::test_runner_coverage);
@@ -659,6 +675,10 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
   AddOption("--trace-warnings",
             "show stack traces on process warnings",
             &EnvironmentOptions::trace_warnings,
+            kAllowedInEnvvar);
+  AddOption("--trace-promises",
+            "show stack traces on promise initialization and resolution",
+            &EnvironmentOptions::trace_promises,
             kAllowedInEnvvar);
   AddOption("--experimental-default-type",
             "set module system to use by default",
@@ -838,6 +858,12 @@ PerIsolateOptionsParser::PerIsolateOptionsParser(
             "Generate a snapshot blob when the process exits.",
             &PerIsolateOptions::build_snapshot,
             kDisallowedInEnvvar);
+  AddOption("--build-snapshot-config",
+            "Generate a snapshot blob when the process exits using a"
+            "JSON configuration in the specified path.",
+            &PerIsolateOptions::build_snapshot_config,
+            kDisallowedInEnvvar);
+  Implies("--build-snapshot-config", "--build-snapshot");
 
   Insert(eop, &PerIsolateOptions::get_per_env_options);
 }
