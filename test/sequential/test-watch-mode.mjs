@@ -432,7 +432,7 @@ process.on('message', (message) => {
     assert.deepStrictEqual(lines, [
       'running',
       'Received: first message',
-      `Restarting '${file}'`,
+      `Restarting ${inspect(file)}`,
       'running',
       'Received: second message',
       `Completed running ${inspect(file)}`,
