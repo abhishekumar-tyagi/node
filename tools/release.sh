@@ -176,7 +176,7 @@ sign() {
 
       # Copy SHASUM256.txt.sig
       # shellcheck disable=SC2086,SC2029
-      ssh ${customsshkey} "$webuser@$webhost" aws s3 cp "${shadir}/${shafile}.asc" "s3://${cloudflare_bucket}/${r2dir}/${shafile}.sig" --endpoint="${cloudflare_endpoint}" --profile=${cloudflare_profile}
+      ssh ${customsshkey} "$webuser@$webhost" aws s3 cp "${shadir}/${shafile}.sig" "s3://${cloudflare_bucket}/${r2dir}/${shafile}.sig" --endpoint="${cloudflare_endpoint}" --profile=${cloudflare_profile}
 
       break
     fi
