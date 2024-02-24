@@ -196,6 +196,8 @@ For information about the governance of the Node.js project, see
   **Robert Nagy** <<ronagy@icloud.com>>
 * [ruyadorno](https://github.com/ruyadorno) -
   **Ruy Adorno** <<ruyadorno@google.com>> (he/him)
+* [ShogunPanda](https://github.com/ShogunPanda) -
+  **Paolo Insogna** <<paolo@cowtech.it>> (he/him)
 * [targos](https://github.com/targos) -
   **Michaël Zasso** <<targos@protonmail.com>> (he/him)
 * [tniessen](https://github.com/tniessen) -
@@ -389,6 +391,8 @@ For information about the governance of the Node.js project, see
   **Keyhan Vakil** <<kvakil@sylph.kvakil.me>>
 * [legendecas](https://github.com/legendecas) -
   **Chengzhong Wu** <<legendecas@gmail.com>> (he/him)
+* [lemire](https://github.com/lemire) -
+  **Daniel Lemire** <<daniel@lemire.me>>
 * [linkgoron](https://github.com/linkgoron) -
   **Nitzan Uziely** <<linkgoron@gmail.com>>
 * [LiviaMedeiros](https://github.com/LiviaMedeiros) -
@@ -425,8 +429,6 @@ For information about the governance of the Node.js project, see
   **Myles Borins** <<myles.borins@gmail.com>> (he/him)
 * [ovflowd](https://github.com/ovflowd) -
   **Claudio Wunder** <<cwunder@gnome.org>> (he/they)
-* [oyyd](https://github.com/oyyd) -
-  **Ouyang Yadong** <<oyydoibh@gmail.com>> (he/him)
 * [panva](https://github.com/panva) -
   **Filip Skokan** <<panva.ip@gmail.com>> (he/him)
 * [Qard](https://github.com/Qard) -
@@ -481,6 +483,8 @@ For information about the governance of the Node.js project, see
   **Yash Ladha** <<yash@yashladha.in>> (he/him)
 * [ZYSzys](https://github.com/ZYSzys) -
   **Yongsheng Zhang** <<zyszys98@gmail.com>> (he/him)
+* [zcbenz](https://github.com/zcbenz) -
+  **Cheng Zhao** <zcbenz@gmail.com> (he/him)
 
 <details>
 
@@ -621,6 +625,8 @@ For information about the governance of the Node.js project, see
   **Alexis Campailla** <<orangemocha@nodejs.org>>
 * [othiym23](https://github.com/othiym23) -
   **Forrest L Norvell** <<ogd@aoaioxxysz.net>> (they/them/themself)
+* [oyyd](https://github.com/oyyd) -
+  **Ouyang Yadong** <<oyydoibh@gmail.com>> (he/him)
 * [petkaantonov](https://github.com/petkaantonov) -
   **Petka Antonov** <<petka_antonov@hotmail.com>>
 * [phillipj](https://github.com/phillipj) -

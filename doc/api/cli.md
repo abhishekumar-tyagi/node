@@ -106,7 +106,7 @@ If this flag is passed, the behavior can still be set to not abort through
 ### `--allow-addons`
 
 <!-- YAML
-added: REPLACEME
+added: v21.6.0
 -->
 
 > Stability: 1.1 - Active development
@@ -367,7 +367,7 @@ Currently the support for run-time snapshot is experimental in that:
 ### `--build-snapshot-config`
 
 <!-- YAML
-added: REPLACEME
+added: v21.6.0
 -->
 
 > Stability: 1 - Experimental
@@ -666,6 +666,10 @@ of `--enable-source-maps`.
 
 <!-- YAML
 added: v20.6.0
+changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/51289
+    description: Add support to multi-line values.
 -->
 
 Loads environment variables from a file relative to the current directory,
@@ -700,6 +704,20 @@ They are omitted from the values.
 
 ```text
 USERNAME="nodejs" # will result in `nodejs` as the value.
+```
+
+Multi-line values are supported:
+
+```text
+MULTI_LINE="THIS IS
+A MULTILINE"
+# will result in `THIS IS\nA MULTILINE` as the value.
+```
+
+Export keyword before a key is ignored:
+
+```text
+export USERNAME="nodejs" # will result in `nodejs` as the value.
 ```
 
 ### `-e`, `--eval "script"`
@@ -930,16 +948,6 @@ added: v12.3.0
 -->
 
 Enable experimental WebAssembly module support.
-
-### `--experimental-websocket`
-
-<!-- YAML
-added:
-  - v21.0.0
-  - v20.10.0
--->
-
-Enable experimental [`WebSocket`][] support.
 
 ### `--force-context-aware`
 
@@ -1358,6 +1366,14 @@ added: v16.6.0
 -->
 
 Use this flag to disable top-level await in REPL.
+
+### `--no-experimental-websocket`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+Use this flag to disable experimental [`WebSocket`][] support.
 
 ### `--no-extra-info-on-fatal-exception`
 
@@ -2493,7 +2509,6 @@ Node.js options that are allowed are:
 * `--experimental-vm-modules`
 * `--experimental-wasi-unstable-preview1`
 * `--experimental-wasm-modules`
-* `--experimental-websocket`
 * `--force-context-aware`
 * `--force-fips`
 * `--force-node-api-uncaught-exceptions-policy`
@@ -2518,6 +2533,7 @@ Node.js options that are allowed are:
 * `--no-experimental-global-navigator`
 * `--no-experimental-global-webcrypto`
 * `--no-experimental-repl-await`
+* `--no-experimental-websocket`
 * `--no-extra-info-on-fatal-exception`
 * `--no-force-async-hooks-checks`
 * `--no-global-search-paths`
@@ -2871,6 +2887,23 @@ threadpool by setting the `'UV_THREADPOOL_SIZE'` environment variable to a value
 greater than `4` (its current default value). For more information, see the
 [libuv threadpool documentation][].
 
+### `UV_USE_IO_URING=value`
+
+Enable or disable libuv's use of `io_uring` on supported platforms.
+
+On supported platforms, `io_uring` can significantly improve the performance of
+various asynchronous I/O operations.
+
+`io_uring` is disabled by default due to security concerns. When `io_uring`
+is enabled, applications must not change the user identity of the process at
+runtime. In this case, JavaScript functions such as [`process.setuid()`][] are
+unavailable, and native addons must not invoke system functions such as
+[`setuid(2)`][].
+
+This environment variable is implemented by a dependency of Node.js and may be
+removed in future versions of Node.js. No stability guarantees are provided for
+the behavior of this environment variable.
+
 ## Useful V8 options
 
 V8 has its own set of CLI options. Any V8 CLI option that is provided to `node`
@@ -2975,6 +3008,8 @@ done
 [`dnsPromises.lookup()`]: dns.md#dnspromiseslookuphostname-options
 [`import` specifier]: esm.md#import-specifiers
 [`process.setUncaughtExceptionCaptureCallback()`]: process.md#processsetuncaughtexceptioncapturecallbackfn
+[`process.setuid()`]: process.md#processsetuidid
+[`setuid(2)`]: https://man7.org/linux/man-pages/man2/setuid.2.html
 [`tls.DEFAULT_MAX_VERSION`]: tls.md#tlsdefault_max_version
 [`tls.DEFAULT_MIN_VERSION`]: tls.md#tlsdefault_min_version
 [`unhandledRejection`]: process.md#event-unhandledrejection

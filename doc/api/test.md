@@ -1420,6 +1420,9 @@ describe('tests', async () => {
 });
 ```
 
+**Note:** The `after` hook is guaranteed to run,
+even if tests within the suite fail.
+
 ## `beforeEach([fn][, options])`
 
 <!-- YAML
@@ -1472,6 +1475,9 @@ added:
 
 This function is used to create a hook running
 after each subtest of the current test.
+
+**Note:** The `afterEach` hook is guaranteed to run after every test,
+even if any of the tests fail.
 
 ```js
 describe('tests', async () => {
@@ -2825,8 +2831,9 @@ added:
   - v16.17.0
 -->
 
-* {AbortSignal} Can be used to abort test subtasks when the test has been
-  aborted.
+* Type: {AbortSignal}
+
+Can be used to abort test subtasks when the test has been aborted.
 
 ```js
 test('top level test', async (t) => {
@@ -2971,8 +2978,9 @@ added:
   - v16.17.0
 -->
 
-* {AbortSignal} Can be used to abort test subtasks when the test has been
-  aborted.
+* Type: {AbortSignal}
+
+Can be used to abort test subtasks when the test has been aborted.
 
 [TAP]: https://testanything.org/
 [TTY]: tty.md
