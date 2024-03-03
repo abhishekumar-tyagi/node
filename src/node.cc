@@ -1034,7 +1034,7 @@ InitializeOncePerProcessInternal(const std::vector<std::string>& args,
   if (!(flags & ProcessInitializationFlags::kNoParseGlobalDebugVariables)) {
     // Initialized the enabled list for Debug() calls with system
     // environment variables.
-    per_process::enabled_debug_list.Parse();
+    per_process::enabled_debug_list.Parse(per_process::system_environment);
   }
 
   PlatformInit(flags);
@@ -1445,13 +1445,16 @@ static ExitCode StartInternal(int argc, char** argv) {
   });
 
   uv_loop_configure(uv_default_loop(), UV_METRICS_IDLE_TIME);
-
   std::string sea_config = per_process::cli_options->experimental_sea_config;
   if (!sea_config.empty()) {
+#if !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
     return sea::BuildSingleExecutableBlob(
         sea_config, result->args(), result->exec_args());
+#else
+    fprintf(stderr, "Single executable application is disabled.\n");
+    return ExitCode::kGenericUserError;
+#endif  // !defined(DISABLE_SINGLE_EXECUTABLE_APPLICATION)
   }
-
   // --build-snapshot indicates that we are in snapshot building mode.
   if (per_process::cli_options->per_isolate->build_snapshot) {
     if (per_process::cli_options->per_isolate->build_snapshot_config.empty() &&

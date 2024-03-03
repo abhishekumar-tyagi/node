@@ -308,8 +308,7 @@ class ThreadPoolWork {
 namespace credentials {
 bool SafeGetenv(const char* key,
                 std::string* text,
-                std::shared_ptr<KVStore> env_vars = nullptr,
-                v8::Isolate* isolate = nullptr);
+                std::shared_ptr<KVStore> env_vars = nullptr);
 }  // namespace credentials
 
 void DefineZlibConstants(v8::Local<v8::Object> target);
@@ -446,6 +445,10 @@ v8::HeapProfiler::HeapSnapshotOptions GetHeapSnapshotOptions(
     v8::Local<v8::Value> options);
 }  // namespace heap
 
+enum encoding ParseEncoding(v8::Isolate* isolate,
+                            v8::Local<v8::Value> encoding_v,
+                            v8::Local<v8::Value> encoding_id,
+                            enum encoding default_encoding);
 }  // namespace node
 
 #endif  // defined(NODE_WANT_INTERNALS) && NODE_WANT_INTERNALS
