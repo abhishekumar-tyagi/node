@@ -53,3 +53,15 @@ function testForSubstring(options) {
 }
 
 startPrintHelpTest();
+
+// Test closed stdout for `node --help`. Like `node --help | head -n5`.
+{
+  const socket = new net.Socket();
+  socket.end();
+  const result = spawnSync(process.execPath, ['--help'], {
+    stdio: ['inherit', socket, 'inherit']
+  });
+  assert.strictEqual(child.status, 0, 'node --help should exit with code 0');
+  assert(!child.error, 'node --help should not have an error');
+  socket.destroy();
+}
