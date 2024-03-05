@@ -7,7 +7,8 @@ const common = require('../common');
 // returns the proper set of cli options when invoked
 
 const assert = require('assert');
-const { exec } = require('child_process');
+const { exec, spawnSync } = require('child_process');
+const net = require('net');
 let stdOut;
 
 
@@ -61,7 +62,7 @@ startPrintHelpTest();
   const result = spawnSync(process.execPath, ['--help'], {
     stdio: ['inherit', socket, 'inherit']
   });
-  assert.strictEqual(child.status, 0, 'node --help should exit with code 0');
-  assert(!child.error, 'node --help should not have an error');
+  assert.strictEqual(result.status, 0);
+  assert(!result.error);
   socket.destroy();
 }
