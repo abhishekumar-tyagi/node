@@ -7,8 +7,8 @@ const common = require('../common');
 // returns the proper set of cli options when invoked
 
 const assert = require('assert');
-const { exec, spawnSync } = require('child_process');
-const net = require('net');
+const { exec, spawn } = require('child_process');
+const once = require('events');
 let stdOut;
 
 
@@ -56,13 +56,9 @@ function testForSubstring(options) {
 startPrintHelpTest();
 
 // Test closed stdout for `node --help`. Like `node --help | head -n5`.
-{
-  const socket = new net.Socket();
-  socket.end();
-  const result = spawnSync(process.execPath, ['--help'], {
-    stdio: ['inherit', socket, 'inherit']
-  });
-  assert.strictEqual(result.status, 0);
-  assert(!result.error);
-  socket.destroy();
-}
+(async () => {
+  const cp = spawn('node', ['--help']);
+  cp.stdout.destroy();
+  const [exitCode] = await once(cp, 'exit');
+  assert.strictEqual(exitCode, 0);
+})().then(common.mustCall());
