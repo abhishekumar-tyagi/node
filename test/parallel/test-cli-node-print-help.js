@@ -8,7 +8,7 @@ const common = require('../common');
 
 const assert = require('assert');
 const { exec, spawn } = require('child_process');
-const once = require('events');
+const { once } = require('events');
 let stdOut;
 
 
