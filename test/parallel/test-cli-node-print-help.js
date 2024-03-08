@@ -57,7 +57,9 @@ startPrintHelpTest();
 
 // Test closed stdout for `node --help`. Like `node --help | head -n5`.
 (async () => {
-  const cp = spawn('node', ['--help']);
+  const cp = spawn('node', ['--help'], {
+    stdio: ['inherit', 'pipe', 'inherit'],
+  });
   cp.stdout.destroy();
   const [exitCode] = await once(cp, 'exit');
   assert.strictEqual(exitCode, 0);
