@@ -269,6 +269,26 @@ assert.strictEqual(util.format('%s', -Infinity), '-Infinity');
   );
 }
 
+// Symbol.toPrimitive handling for string format specifier
+{
+  const objectWithToPrimitive = {
+    [Symbol.toPrimitive](hint) {
+      switch (hint) {
+        case 'number':
+          return 42;
+        case 'string':
+          return 'string representation';
+        case 'default':
+        default:
+          return 'default context';
+      }
+    }
+  };
+
+  // TODO Add tests here after fixing the same bug for %d/%j.
+  assert.strictEqual(util.format('%s', objectWithToPrimitive), 'string representation');
+}
+
 // JSON format specifier
 assert.strictEqual(util.format('%j'), '%j');
 assert.strictEqual(util.format('%j', 42), '42');
