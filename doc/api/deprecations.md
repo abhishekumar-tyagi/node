@@ -3582,11 +3582,14 @@ Please use the [`crypto.createHash()`][] method to create Hash instances.
 <!-- YAML
 changes:
   - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/52067
+    description: Runtime deprecation.
+  - version: REPLACEME
     pr-url: https://github.com/nodejs/node/pull/51879
     description: Documentation-only deprecation.
 -->
 
-Type: Documentation-only
+Type: Runtime
 
 Calling `fs.Stats` class directly with `Stats()` or `new Stats()` is
 deprecated due to being internals, not intended for public use.
@@ -3596,11 +3599,14 @@ deprecated due to being internals, not intended for public use.
 <!-- YAML
 changes:
   - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/52071
+    description: Runtime deprecation.
+  - version: REPLACEME
     pr-url: https://github.com/nodejs/node/pull/51881
     description: Documentation-only deprecation.
 -->
 
-Type: Documentation-only
+Type: Runtime
 
 Calling `Hmac` class directly with `Hmac()` or `new Hmac()` is
 deprecated due to being internals, not intended for public use.

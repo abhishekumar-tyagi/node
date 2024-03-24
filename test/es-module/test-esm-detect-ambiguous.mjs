@@ -4,8 +4,8 @@ import { spawn } from 'node:child_process';
 import { describe, it } from 'node:test';
 import { strictEqual, match } from 'node:assert';
 
-describe('--experimental-detect-module', { concurrency: true }, () => {
-  describe('string input', { concurrency: true }, () => {
+describe('--experimental-detect-module', { concurrency: !process.env.TEST_PARALLEL }, () => {
+  describe('string input', { concurrency: !process.env.TEST_PARALLEL }, () => {
     it('permits ESM syntax in --eval input without requiring --input-type=module', async () => {
       const { stdout, stderr, code, signal } = await spawnPromisified(process.execPath, [
         '--experimental-detect-module',
@@ -72,7 +72,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
     });
   });
 
-  describe('.js file input in a typeless package', { concurrency: true }, () => {
+  describe('.js file input in a typeless package', { concurrency: !process.env.TEST_PARALLEL }, () => {
     for (const { testName, entryPath } of [
       {
         testName: 'permits CommonJS syntax in a .js entry point',
@@ -101,6 +101,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
     ]) {
       it(testName, async () => {
         const { stdout, stderr, code, signal } = await spawnPromisified(process.execPath, [
+          '--no-warnings',
           '--experimental-detect-module',
           entryPath,
         ]);
@@ -113,7 +114,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
     }
   });
 
-  describe('extensionless file input in a typeless package', { concurrency: true }, () => {
+  describe('extensionless file input in a typeless package', { concurrency: !process.env.TEST_PARALLEL }, () => {
     for (const { testName, entryPath } of [
       {
         testName: 'permits CommonJS syntax in an extensionless entry point',
@@ -142,6 +143,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
     ]) {
       it(testName, async () => {
         const { stdout, stderr, code, signal } = await spawnPromisified(process.execPath, [
+          '--no-warnings',
           '--experimental-detect-module',
           entryPath,
         ]);
@@ -177,7 +179,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
     });
   });
 
-  describe('file input in a "type": "commonjs" package', { concurrency: true }, () => {
+  describe('file input in a "type": "commonjs" package', { concurrency: !process.env.TEST_PARALLEL }, () => {
     for (const { testName, entryPath } of [
       {
         testName: 'disallows ESM syntax in a .js entry point',
@@ -206,7 +208,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
     }
   });
 
-  describe('file input in a "type": "module" package', { concurrency: true }, () => {
+  describe('file input in a "type": "module" package', { concurrency: !process.env.TEST_PARALLEL }, () => {
     for (const { testName, entryPath } of [
       {
         testName: 'disallows CommonJS syntax in a .js entry point',
@@ -236,7 +238,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
   });
 
   // https://github.com/nodejs/node/issues/50917
-  describe('syntax that errors in CommonJS but works in ESM', { concurrency: true }, () => {
+  describe('syntax that errors in CommonJS but works in ESM', { concurrency: !process.env.TEST_PARALLEL }, () => {
     it('permits top-level `await`', async () => {
       const { stdout, stderr, code, signal } = await spawnPromisified(process.execPath, [
         '--experimental-detect-module',
@@ -291,6 +293,7 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
 
     it('permits declaration of CommonJS module variables', async () => {
       const { stdout, stderr, code, signal } = await spawnPromisified(process.execPath, [
+        '--no-warnings',
         '--experimental-detect-module',
         fixtures.path('es-modules/package-without-type/commonjs-wrapper-variables.js'),
       ]);
@@ -324,6 +327,48 @@ describe('--experimental-detect-module', { concurrency: true }, () => {
       match(stderr, /SyntaxError: Identifier 'require' has already been declared/);
       strictEqual(stdout, '');
       strictEqual(code, 1);
+      strictEqual(signal, null);
+    });
+  });
+
+  describe('warn about typeless packages for .js files with ESM syntax', { concurrency: true }, () => {
+    for (const { testName, entryPath } of [
+      {
+        testName: 'warns for ESM syntax in a .js entry point in a typeless package',
+        entryPath: fixtures.path('es-modules/package-without-type/module.js'),
+      },
+      {
+        testName: 'warns for ESM syntax in a .js file imported by a CommonJS entry point in a typeless package',
+        entryPath: fixtures.path('es-modules/package-without-type/imports-esm.js'),
+      },
+      {
+        testName: 'warns for ESM syntax in a .js file imported by an ESM entry point in a typeless package',
+        entryPath: fixtures.path('es-modules/package-without-type/imports-esm.mjs'),
+      },
+    ]) {
+      it(testName, async () => {
+        const { stdout, stderr, code, signal } = await spawnPromisified(process.execPath, [
+          '--experimental-detect-module',
+          entryPath,
+        ]);
+
+        match(stderr, /MODULE_TYPELESS_PACKAGE_JSON/);
+        strictEqual(stdout, 'executed\n');
+        strictEqual(code, 0);
+        strictEqual(signal, null);
+      });
+    }
+
+    it('warns only once for a package.json that affects multiple files', async () => {
+      const { stdout, stderr, code, signal } = await spawnPromisified(process.execPath, [
+        '--experimental-detect-module',
+        fixtures.path('es-modules/package-without-type/detected-as-esm.js'),
+      ]);
+
+      match(stderr, /MODULE_TYPELESS_PACKAGE_JSON/);
+      strictEqual(stderr.match(/MODULE_TYPELESS_PACKAGE_JSON/g).length, 1);
+      strictEqual(stdout, 'executed\nexecuted\n');
+      strictEqual(code, 0);
       strictEqual(signal, null);
     });
   });
