@@ -285,8 +285,9 @@ assert.strictEqual(util.format('%s', -Infinity), '-Infinity');
     }
   };
 
-  // TODO Add tests here after fixing the same bug for %d/%j.
+  assert.strictEqual(util.format('%s', +objectWithToPrimitive), '42');
   assert.strictEqual(util.format('%s', objectWithToPrimitive), 'string representation');
+  assert.strictEqual(util.format('%s', objectWithToPrimitive + ''), 'default context');
 }
 
 // JSON format specifier
