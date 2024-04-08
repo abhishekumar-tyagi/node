@@ -1216,7 +1216,7 @@ When enabled, the parser will accept the following:
 * Allow message containing both `Transfer-Encoding`
   and `Content-Length` headers.
 * Allow extra data after message when `Connection: close` is present.
-* Allow extra trasfer encodings after `chunked` has been provided.
+* Allow extra transfer encodings after `chunked` has been provided.
 * Allow `\n` to be used as token separator instead of `\r\n`.
 * Allow `\r\n` not to be provided after a chunk.
 * Allow spaces to be present after a chunk size and before `\r\n`.
@@ -1806,6 +1806,50 @@ rules. `module` may be either a path to a file, or a node module name.
 Only CommonJS modules are supported.
 Use [`--import`][] to preload an [ECMAScript module][].
 Modules preloaded with `--require` will run before modules preloaded with `--import`.
+
+### `--run`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+> Stability: 1.1 - Active development
+
+This runs a specified command from a package.json's `"scripts"` object.
+If no `"command"` is provided, it will list the available scripts.
+
+`--run` prepends `./node_modules/.bin`, relative to the current
+working directory, to the `PATH` in order to execute the binaries from
+dependencies.
+
+For example, the following command will run the `test` script of
+the `package.json` in the current folder:
+
+```console
+$ node --run test
+```
+
+You can also pass arguments to the command. Any argument after `--` will
+be appended to the script:
+
+```console
+$ node --run test -- --verbose
+```
+
+#### Intentional limitations
+
+`node --run` is not meant to match the behaviors of `npm run` or of the `run`
+commands of other package managers. The Node.js implementation is intentionally
+more limited, in order to focus on top performance for the most common use
+cases.
+Some features of other `run` implementations that are intentionally excluded
+are:
+
+* Searching for `package.json` files outside the current folder.
+* Prepending the `.bin` or `node_modules/.bin` paths of folders outside the
+  current folder.
+* Running `pre` or `post` scripts in addition to the specified script.
+* Defining package manager-specific environment variables.
 
 ### `--secure-heap=n`
 
