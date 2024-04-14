@@ -41,7 +41,7 @@ std::vector<std::string> Dotenv::GetPathFromArgs(
   return paths;
 }
 
-void Dotenv::SetEnvironment(node::Environment* env) {
+void Dotenv::SetEnvironment(node::Environment* env, bool should_override) {
   if (store_.empty()) {
     return;
   }
@@ -52,9 +52,7 @@ void Dotenv::SetEnvironment(node::Environment* env) {
     auto key = entry.first;
     auto value = entry.second;
 
-    auto existing = env->env_vars()->Get(key.data());
-
-    if (existing.IsNothing()) {
+    if (!env->env_vars()->Get(key.data()).IsJust() || should_override) {
       env->env_vars()->Set(
           isolate,
           v8::String::NewFromUtf8(
