@@ -47,7 +47,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Environment Information
-        run: npx envinfo
+        run: npx envinfo@7.11.0
       - name: Make tarball
         run: |
           export DISTTYPE=nightly
@@ -73,7 +73,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Environment Information
-        run: npx envinfo
+        run: npx envinfo@7.11.0
       - name: Download tarball
         uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427  # v4.1.4
         with:
