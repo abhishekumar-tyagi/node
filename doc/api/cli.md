@@ -812,6 +812,14 @@ CommonJS. This includes the following:
 * Lexical redeclarations of the CommonJS wrapper variables (`require`, `module`,
   `exports`, `__dirname`, `__filename`).
 
+### `--experimental-eventsource`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+Enable exposition of [EventSource Web API][] on the global scope.
+
 ### `--experimental-import-meta-resolve`
 
 <!-- YAML
@@ -2653,6 +2661,7 @@ one is included in the list below.
 * `--experimental-abortcontroller`
 * `--experimental-default-type`
 * `--experimental-detect-module`
+* `--experimental-eventsource`
 * `--experimental-import-meta-resolve`
 * `--experimental-json-modules`
 * `--experimental-loader`
@@ -3163,6 +3172,7 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [CustomEvent Web API]: https://dom.spec.whatwg.org/#customevent
 [DEP0025 warning]: deprecations.md#dep0025-requirenodesys
 [ECMAScript module]: esm.md#modules-ecmascript-modules
+[EventSource Web API]: https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events
 [ExperimentalWarning: `vm.measureMemory` is an experimental feature]: vm.md#vmmeasurememoryoptions
 [Fetch API]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
 [File System Permissions]: permissions.md#file-system-permissions
