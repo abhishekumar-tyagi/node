@@ -2303,41 +2303,40 @@ changes:
 Loads the `.env` file into `process.env`. Usage of `NODE_OPTIONS`
 in the `.env` file will not have any effect on Node.js.
 
-```cjs
-const { loadEnvFile } = require('node:process');
-loadEnvFile();
-```
-
-```mjs
-import { loadEnvFile } from 'node:process';
-loadEnvFile();
+```js
+process.loadEnvFile();
 ```
 
 Override local environment variables using override option
 
-```cjs
-const { loadEnvFile } = require('node:process');
-loadEnvFile('.env', { override: true });
+Example:
+
+Assume you have a local environment variable on your machine
+
+```bash
+API_KEY="local-key"
 ```
 
-```mjs
-import { loadEnvFile } from 'node:process';
-loadEnvFile('.env', { override: true });
+Meanwhile, your `.env` file contains:
+
+```bash
+API_KEY='env-custom-key'
 ```
 
-This API is available through the [`--env-file-override-local`][] flag.
+If you want to use the value from the `.env` file
+
+```js
+process.loadEnvFile('.env', { override: true });
+console.log(process.env.API_KEY); // 'env-custom-key'
+```
 
 Load environment variables with options only
 
-```cjs
-const { loadEnvFile } = require('node:process');
-loadEnvFile({ override: true });
+```js
+process.loadEnvFile({ override: true });
 ```
 
-```mjs
-import { loadEnvFile } from 'node:process';
-loadEnvFile({ override: true });
-```
+This API is available through the [`--env-file-override-local`][] flag.
 
 ## `process.mainModule`
 
