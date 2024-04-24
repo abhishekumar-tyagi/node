@@ -2,3 +2,65 @@
 XXX.....X..X...X....
 .....X...XXX.XX.....
 .XXXXXXX...XXXXX
+✖  Failed tests:
+✖  sync fail todo (0.626ms)
+✖  sync fail todo with message (0.2396ms)
+✖  sync throw fail (0.1932ms)
+✖  async throw fail (0.9071ms)
+✖  async skip fail (3.0053ms)
+✖  async assertion fail (2.257ms)
+✖  reject fail (0.1724ms)
+✖  +sync throw fail (0.2272ms)
+✖  subtest sync throw fail (0.6959ms)
+✖  sync throw non-error fail (0.2945ms)
+✖  +long running (1.1404ms)
+✖  top level (1.0665ms)
+✖  sync skip option is false fail (0.1424ms)
+✖  callback fail (0.758ms)
+✖  callback also returns a Promise (0.325ms)
+✖  callback throw (0.1756ms)
+✖  callback called twice (0.1568ms)
+✖  callback called twice in future tick (3.8547ms)
+✖  callback async throw (0.5045ms)
+✖  custom inspect symbol fail (0.4617ms)
+✖  custom inspect symbol that throws fail (2.1317ms)
+✖  sync throw fails at first (0.1675ms)
+✖  sync throw fails at second (0.1189ms)
+✖  subtest sync throw fails (0.5705ms)
+✖  timed out async test (13.9356ms)
+✖  timed out callback test (14.4472ms)
+✖  rejected thenable (0.2562ms)
+✖  unfinished test with uncaughtException (15.3441ms)
+✖  unfinished test with unhandledRejection (0.899ms)
+✖  assertion errors display actual and expected properly (3.2331ms)
+✖  invalid subtest fail (0.17ms)
+node:assert:173
+  throw err;
+  ^
+
+AssertionError [ERR_ASSERTION]: Unexpected global(s) found: __DT_AGENT_INJECTED__
+    *
+    * {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail'
+}
+
+Node.js v22.0.0-pre
+node:assert:173
+  throw err;
+  ^
+
+AssertionError [ERR_ASSERTION]: Unexpected global(s) found: __DT_AGENT_INJECTED__
+    *
+    * {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail'
+}
+
+Node.js v22.0.0-pre

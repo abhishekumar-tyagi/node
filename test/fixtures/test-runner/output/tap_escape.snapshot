@@ -29,3 +29,18 @@ ok 4 - escaped diagnostic
 # skipped 1
 # todo 1
 # duration_ms *
+node:assert:173
+  throw err;
+  ^
+
+AssertionError [ERR_ASSERTION]: Unexpected global(s) found: __DT_AGENT_INJECTED__
+    at process.<anonymous> (C:\Users\M_Bhansali\Desktop\Projects\open source\node\test\common\index.js:396:14)
+    at process.emit (node:events:520:28) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail'
+}
+
+Node.js v22.0.0-pre

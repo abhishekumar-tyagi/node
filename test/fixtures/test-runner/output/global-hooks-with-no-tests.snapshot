@@ -10,3 +10,18 @@ after
 # skipped 0
 # todo 0
 # duration_ms *
+node:assert:173
+  throw err;
+  ^
+
+AssertionError [ERR_ASSERTION]: Unexpected global(s) found: __DT_AGENT_INJECTED__
+    *
+    * {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail'
+}
+
+Node.js v22.0.0-pre

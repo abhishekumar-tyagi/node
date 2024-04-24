@@ -530,3 +530,33 @@ Error [ERR_TEST_FAILURE]: test could not be started because its parent finished
 	<!-- todo 4 -->
 	<!-- duration_ms * -->
 </testsuites>
+node:assert:173
+  throw err;
+  ^
+
+AssertionError [ERR_ASSERTION]: Unexpected global(s) found: __DT_AGENT_INJECTED__
+    *
+    * {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail'
+}
+
+Node.js v22.0.0-pre
+node:assert:173
+  throw err;
+  ^
+
+AssertionError [ERR_ASSERTION]: Unexpected global(s) found: __DT_AGENT_INJECTED__
+    *
+    * {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: undefined,
+  operator: 'fail'
+}
+
+Node.js v22.0.0-pre
