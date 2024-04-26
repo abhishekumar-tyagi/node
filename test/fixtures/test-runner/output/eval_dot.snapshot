@@ -1,6 +1,8 @@
 .X
-✖  Failed tests:
-✖ fails (0.6744ms)
+
+Failed tests:
+
+✖ fails (0.6101ms)
   Error: fail
       *
       *
