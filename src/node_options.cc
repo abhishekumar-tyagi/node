@@ -374,6 +374,7 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
   AddOption("--dns-result-order",
             "set default value of verbatim in dns.lookup. Options are "
             "'ipv4first' (IPv4 addresses are placed before IPv6 addresses) "
+            "'ipv6first' (IPv6 addresses are placed before IPv4 addresses) "
             "'verbatim' (addresses are in the order the DNS resolver "
             "returned)",
             &EnvironmentOptions::dns_result_order,
@@ -383,6 +384,11 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::network_family_autoselection,
             kAllowedInEnvvar,
             true);
+  AddOption("--network-family-autoselection-attempt-timeout",
+            "Sets the default value for the network family autoselection "
+            "attempt timeout.",
+            &EnvironmentOptions::network_family_autoselection_attempt_timeout,
+            kAllowedInEnvvar);
   AddAlias("--enable-network-family-autoselection",
            "--network-family-autoselection");
   AddOption("--enable-source-maps",
@@ -390,11 +396,7 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::enable_source_maps,
             kAllowedInEnvvar);
   AddOption("--experimental-abortcontroller", "", NoOp{}, kAllowedInEnvvar);
-  AddOption("--experimental-fetch",
-            "experimental Fetch API",
-            &EnvironmentOptions::experimental_fetch,
-            kAllowedInEnvvar,
-            true);
+  AddOption("--experimental-fetch", "", NoOp{}, kAllowedInEnvvar);
   AddOption("--experimental-websocket",
             "experimental WebSocket API",
             &EnvironmentOptions::experimental_websocket,
@@ -410,11 +412,7 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::experimental_global_navigator,
             kAllowedInEnvvar,
             true);
-  AddOption("--experimental-global-webcrypto",
-            "expose experimental Web Crypto API on the global scope",
-            &EnvironmentOptions::experimental_global_web_crypto,
-            kAllowedInEnvvar,
-            true);
+  AddOption("--experimental-global-webcrypto", "", NoOp{}, kAllowedInEnvvar);
   AddOption("--experimental-json-modules", "", NoOp{}, kAllowedInEnvvar);
   AddOption("--experimental-loader",
             "use the specified module as a custom loader",
@@ -573,6 +571,9 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::prof_process);
   // Options after --prof-process are passed through to the prof processor.
   AddAlias("--prof-process", { "--prof-process", "--" });
+  AddOption("--run",
+            "Run a script specified in package.json",
+            &EnvironmentOptions::run);
 #if HAVE_INSPECTOR
   AddOption("--cpu-prof",
             "Start the V8 CPU profiler on start up, and write the CPU profile "
@@ -658,6 +659,9 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             "run test at specific shard",
             &EnvironmentOptions::test_shard,
             kAllowedInEnvvar);
+  AddOption("--test-skip-pattern",
+            "run tests whose name do not match this regular expression",
+            &EnvironmentOptions::test_skip_pattern);
   AddOption("--test-udp-no-try-send", "",  // For testing only.
             &EnvironmentOptions::test_udp_no_try_send);
   AddOption("--throw-deprecation",

@@ -409,6 +409,10 @@ MaybeLocal<Value> StartExecution(Environment* env, StartExecutionCallback cb) {
     return StartExecution(env, "internal/main/watch_mode");
   }
 
+  if (!env->options()->run.empty()) {
+    return StartExecution(env, "internal/main/run");
+  }
+
   if (!first_argv.empty() && first_argv != "-") {
     return StartExecution(env, "internal/main/run_main_module");
   }
@@ -796,12 +800,6 @@ static ExitCode ProcessGlobalArgsInternal(std::vector<std::string>* args,
     return ExitCode::kInvalidCommandLineArgument2;
   }
 
-  // TODO(aduh95): remove this when the harmony-import-assertions flag
-  // is removed in V8.
-  if (std::find(v8_args.begin(), v8_args.end(),
-                "--no-harmony-import-assertions") == v8_args.end()) {
-    v8_args.emplace_back("--harmony-import-assertions");
-  }
   // TODO(aduh95): remove this when the harmony-import-attributes flag
   // is removed in V8.
   if (std::find(v8_args.begin(),
@@ -809,6 +807,9 @@ static ExitCode ProcessGlobalArgsInternal(std::vector<std::string>* args,
                 "--no-harmony-import-attributes") == v8_args.end()) {
     v8_args.emplace_back("--harmony-import-attributes");
   }
+  // TODO(nicolo-ribaudo): remove this once V8 doesn't enable it by default
+  // anymore.
+  v8_args.emplace_back("--no-harmony-import-assertions");
 
   auto env_opts = per_process::cli_options->per_isolate->per_env;
   if (std::find(v8_args.begin(), v8_args.end(),
@@ -1083,7 +1084,8 @@ InitializeOncePerProcessInternal(const std::vector<std::string>& args,
   }
 
   if (!(flags & ProcessInitializationFlags::kNoInitOpenSSL)) {
-#if HAVE_OPENSSL && !defined(OPENSSL_IS_BORINGSSL)
+#if HAVE_OPENSSL
+#ifndef OPENSSL_IS_BORINGSSL
     auto GetOpenSSLErrorString = []() -> std::string {
       std::string ret;
       ERR_print_errors_cb(
@@ -1183,13 +1185,13 @@ InitializeOncePerProcessInternal(const std::vector<std::string>& args,
       CHECK(crypto::CSPRNG(buffer, length).is_ok());
       return true;
     });
-
+#endif  // !defined(OPENSSL_IS_BORINGSSL)
     {
       std::string extra_ca_certs;
       if (credentials::SafeGetenv("NODE_EXTRA_CA_CERTS", &extra_ca_certs))
         crypto::UseExtraCaCerts(extra_ca_certs);
     }
-#endif  // HAVE_OPENSSL && !defined(OPENSSL_IS_BORINGSSL)
+#endif  // HAVE_OPENSSL
   }
 
   if (!(flags & ProcessInitializationFlags::kNoInitializeNodeV8Platform)) {

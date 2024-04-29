@@ -69,6 +69,7 @@
       'src/base_object.cc',
       'src/cares_wrap.cc',
       'src/cleanup_queue.cc',
+      'src/compile_cache.cc',
       'src/connect_wrap.cc',
       'src/connection_wrap.cc',
       'src/dataqueue/queue.cc',
@@ -190,6 +191,7 @@
       'src/callback_queue-inl.h',
       'src/cleanup_queue.h',
       'src/cleanup_queue-inl.h',
+      'src/compile_cache.h',
       'src/connect_wrap.h',
       'src/connection_wrap.h',
       'src/dataqueue/queue.h',
@@ -413,6 +415,7 @@
       'test/cctest/test_node_crypto.cc',
       'test/cctest/test_node_crypto_env.cc',
       'test/cctest/test_quic_cid.cc',
+      'test/cctest/test_quic_error.cc',
       'test/cctest/test_quic_tokens.cc',
     ],
     'node_cctest_inspector_sources': [
@@ -479,8 +482,20 @@
     },
 
     'conditions': [
+      # Pointer authentication for ARM64.
       ['target_arch=="arm64"', {
-        'cflags': ['-mbranch-protection=standard'],  # Pointer authentication.
+          'target_conditions': [
+              ['_toolset=="host"', {
+                  'conditions': [
+                      ['host_arch=="arm64"', {
+                          'cflags': ['-mbranch-protection=standard'],
+                      }],
+                  ],
+              }],
+              ['_toolset=="target"', {
+                  'cflags': ['-mbranch-protection=standard'],
+              }],
+          ],
       }],
       ['OS in "aix os400"', {
         'ldflags': [
@@ -1255,6 +1270,8 @@
         'deps/histogram/histogram.gyp:histogram',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
         'deps/ada/ada.gyp:ada',
+        'deps/simdjson/simdjson.gyp:simdjson',
+        'deps/simdutf/simdutf.gyp:simdutf',
       ],
 
       'includes': [

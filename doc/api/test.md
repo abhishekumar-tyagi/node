@@ -162,6 +162,37 @@ test('skip() method with message', (t) => {
 });
 ```
 
+## TODO tests
+
+Individual tests can be marked as flaky or incomplete by passing the `todo`
+option to the test, or by calling the test context's `todo()` method, as shown
+in the following example. These tests represent a pending implementation or bug
+that needs to be fixed. TODO tests are executed, but are not treated as test
+failures, and therefore do not affect the process exit code. If a test is marked
+as both TODO and skipped, the TODO option is ignored.
+
+```js
+// The todo option is used, but no message is provided.
+test('todo option', { todo: true }, (t) => {
+  // This code is executed, but not treated as a failure.
+  throw new Error('this does not fail the test');
+});
+
+// The todo option is used, and a message is provided.
+test('todo option with message', { todo: 'this is a todo test' }, (t) => {
+  // This code is executed.
+});
+
+test('todo() method', (t) => {
+  t.todo();
+});
+
+test('todo() method with message', (t) => {
+  t.todo('this is a todo test and is not treated as a failure');
+  throw new Error('this does not fail the test');
+});
+```
+
 ## `describe()` and `it()` aliases
 
 Suites and tests can also be written using the `describe()` and `it()`
@@ -199,14 +230,24 @@ const { describe, it } = require('node:test');
 ## `only` tests
 
 If Node.js is started with the [`--test-only`][] command-line option, it is
-possible to skip all top level tests except for a selected subset by passing
-the `only` option to the tests that should be run. When a test with the `only`
-option set is run, all subtests are also run. The test context's `runOnly()`
-method can be used to implement the same behavior at the subtest level.
+possible to skip all tests except for a selected subset by passing
+the `only` option to the tests that should run. When a test with the `only`
+option is set, all subtests are also run.
+If a suite has the `only` option set, all tests within the suite are run,
+unless it has descendants with the `only` option set, in which case only those
+tests are run.
+
+When using [subtests][] within a `test()`/`it()`, it is required to mark
+all ancestor tests with the `only` option to run only a
+selected subset of tests.
+
+The test context's `runOnly()`
+method can be used to implement the same behavior at the subtest level. Tests
+that are not executed are omitted from the test runner output.
 
 ```js
 // Assume Node.js is run with the --test-only command-line option.
-// The 'only' option is set, so this test is run.
+// The suite's 'only' option is set, so these tests are run.
 test('this test is run', { only: true }, async (t) => {
   // Within this test, all subtests are run by default.
   await t.test('running subtest');
@@ -230,16 +271,42 @@ test('this test is not run', () => {
   // This code is not run.
   throw new Error('fail');
 });
+
+describe('a suite', () => {
+  // The 'only' option is set, so this test is run.
+  it('this test is run', { only: true }, () => {
+    // This code is run.
+  });
+
+  it('this test is not run', () => {
+    // This code is not run.
+    throw new Error('fail');
+  });
+});
+
+describe.only('a suite', () => {
+  // The 'only' option is set, so this test is run.
+  it('this test is run', () => {
+    // This code is run.
+  });
+
+  it('this test is run', () => {
+    // This code is run.
+  });
+});
 ```
 
 ## Filtering tests by name
 
-The [`--test-name-pattern`][] command-line option can be used to only run tests
-whose name matches the provided pattern. Test name patterns are interpreted as
-JavaScript regular expressions. The `--test-name-pattern` option can be
-specified multiple times in order to run nested tests. For each test that is
-executed, any corresponding test hooks, such as `beforeEach()`, are also
-run.
+The [`--test-name-pattern`][] command-line option can be used to only run
+tests whose name matches the provided pattern, and the
+[`--test-skip-pattern`][] option can be used to skip tests whose name
+matches the provided pattern. Test name patterns are interpreted as
+JavaScript regular expressions. The `--test-name-pattern` and
+`--test-skip-pattern` options can be specified multiple times in order to run
+nested tests. For each test that is executed, any corresponding test hooks,
+such as `beforeEach()`, are also run. Tests that are not executed are omitted
+from the test runner output.
 
 Given the following test file, starting Node.js with the
 `--test-name-pattern="test [1-3]"` option would cause the test runner to execute
@@ -263,8 +330,8 @@ test('Test 4', async (t) => {
 
 Test name patterns can also be specified using regular expression literals. This
 allows regular expression flags to be used. In the previous example, starting
-Node.js with `--test-name-pattern="/test [4-5]/i"` would match `Test 4` and
-`Test 5` because the pattern is case-insensitive.
+Node.js with `--test-name-pattern="/test [4-5]/i"` (or `--test-skip-pattern="/test [4-5]/i"`)
+would match `Test 4` and `Test 5` because the pattern is case-insensitive.
 
 To match a single test with a pattern, you can prefix it with all its ancestor
 test names separated by space, to ensure it is unique.
@@ -284,6 +351,9 @@ Starting Node.js with `--test-name-pattern="test 1 some test"` would match
 only `some test` in `test 1`.
 
 Test name patterns do not change the set of files that the test runner executes.
+
+If both `--test-name-pattern` and `--test-skip-pattern` are supplied,
+tests must satisfy **both** requirements in order to be executed.
 
 ## Extraneous asynchronous activity
 
@@ -350,7 +420,7 @@ The Node.js test runner can be invoked from the command line by passing the
 node --test
 ```
 
-By default Node.js will run all files matching these patterns:
+By default, Node.js will run all files matching these patterns:
 
 * `**/*.test.?(c|m)js`
 * `**/*-test.?(c|m)js`
@@ -362,9 +432,11 @@ By default Node.js will run all files matching these patterns:
 Alternatively, one or more glob patterns can be provided as the
 final argument(s) to the Node.js command, as shown below.
 Glob patterns follow the behavior of [`glob(7)`][].
+The glob patterns should be enclosed in double quotes on the command line to
+prevent shell expansion, which can reduce portability across systems.
 
 ```bash
-node --test **/*.test.js **/*.spec.js
+node --test "**/*.test.js" "**/*.spec.js"
 ```
 
 Matching files are executed as test files.
@@ -438,12 +510,8 @@ node --test --experimental-test-coverage --test-reporter=lcov --test-reporter-de
 
 ### Limitations
 
-The test runner's code coverage functionality has the following limitations,
-which will be addressed in a future Node.js release:
-
-* Source maps are not supported.
-* Excluding specific files or directories from the coverage report is not
-  supported.
+The test runner's code coverage functionality does not support excluding
+specific files or directories from the coverage report.
 
 ## Mocking
 
@@ -573,7 +641,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
 });
 ```
 
-```js
+```cjs
 const assert = require('node:assert');
 const { mock, test } = require('node:test');
 
@@ -592,7 +660,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
   // Reset the globally tracked mocks.
   mock.timers.reset();
 
-  // If you call reset mock instance, it'll also reset timers instance
+  // If you call reset mock instance, it will also reset timers instance
   mock.reset();
 });
 ```
@@ -620,7 +688,7 @@ test('mocks setTimeout to be executed synchronously without having to actually w
 });
 ```
 
-```js
+```cjs
 const assert = require('node:assert');
 const { test } = require('node:test');
 
@@ -1118,7 +1186,7 @@ added:
   - v18.9.0
   - v16.19.0
 changes:
-  - version: REPLACEME
+  - version: v22.0.0
     pr-url: https://github.com/nodejs/node/pull/52038
     description: Added the `forceExit` option.
   - version:
@@ -1206,7 +1274,7 @@ run({ files: [path.resolve('./tests/test.js')] })
 ## `suite([name][, options][, fn])`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 * `name` {string} The name of the suite, which is displayed when reporting test
@@ -1224,7 +1292,7 @@ The `suite()` function is imported from the `node:test` module.
 ## `suite.skip([name][, options][, fn])`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Shorthand for skipping a suite. This is the same as
@@ -1233,7 +1301,7 @@ Shorthand for skipping a suite. This is the same as
 ## `suite.todo([name][, options][, fn])`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Shorthand for marking a suite as `TODO`. This is the same as
@@ -1242,7 +1310,7 @@ Shorthand for marking a suite as `TODO`. This is the same as
 ## `suite.only([name][, options][, fn])`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Shorthand for marking a suite as `only`. This is the same as
@@ -3091,6 +3159,7 @@ Can be used to abort test subtasks when the test has been aborted.
 [`--test-only`]: cli.md#--test-only
 [`--test-reporter-destination`]: cli.md#--test-reporter-destination
 [`--test-reporter`]: cli.md#--test-reporter
+[`--test-skip-pattern`]: cli.md#--test-skip-pattern
 [`--test`]: cli.md#--test
 [`MockFunctionContext`]: #class-mockfunctioncontext
 [`MockTimers`]: #class-mocktimers
@@ -3111,6 +3180,7 @@ Can be used to abort test subtasks when the test has been aborted.
 [describe options]: #describename-options-fn
 [it options]: #testname-options-fn
 [stream.compose]: stream.md#streamcomposestreams
+[subtests]: #subtests
 [suite options]: #suitename-options-fn
 [test reporters]: #test-reporters
 [test runner execution model]: #test-runner-execution-model

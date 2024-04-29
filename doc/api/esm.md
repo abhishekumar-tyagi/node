@@ -10,6 +10,7 @@ changes:
   - version:
     - v21.0.0
     - v20.10.0
+    - v18.20.0
     pr-url: https://github.com/nodejs/node/pull/50140
     description: Add experimental support for import attributes.
   - version:
@@ -264,7 +265,7 @@ changes:
   - version:
     - v21.0.0
     - v20.10.0
-    - v18.19.0
+    - v18.20.0
     pr-url: https://github.com/nodejs/node/pull/50140
     description: Switch from Import Assertions to Import Attributes.
 -->
@@ -1174,7 +1175,7 @@ resolution for ESM specifiers is [commonjs-extension-resolution-loader][].
 [`package.json`]: packages.md#nodejs-packagejson-field-definitions
 [`path.dirname()`]: path.md#pathdirnamepath
 [`process.dlopen`]: process.md#processdlopenmodule-filename-flags
-[`url.fileURLToPath()`]: url.md#urlfileurltopathurl
+[`url.fileURLToPath()`]: url.md#urlfileurltopathurl-options
 [cjs-module-lexer]: https://github.com/nodejs/cjs-module-lexer/tree/1.2.2
 [commonjs-extension-resolution-loader]: https://github.com/nodejs/loaders-test/tree/main/commonjs-extension-resolution-loader
 [custom https loader]: module.md#import-from-https
@@ -1183,4 +1184,4 @@ resolution for ESM specifiers is [commonjs-extension-resolution-loader][].
 [special scheme]: https://url.spec.whatwg.org/#special-scheme
 [status code]: process.md#exit-codes
 [the official standard format]: https://tc39.github.io/ecma262/#sec-modules
-[url.pathToFileURL]: url.md#urlpathtofileurlpath
+[url.pathToFileURL]: url.md#urlpathtofileurlpath-options

@@ -1115,7 +1115,7 @@ added:
   - v19.6.0
   - v18.15.0
 changes:
-  - version: REPLACEME
+  - version: v22.0.0
     pr-url: https://github.com/nodejs/node/pull/52039
     description: Aligned return value with `uv_get_constrained_memory`.
 -->
@@ -1134,7 +1134,7 @@ information.
 ## `process.availableMemory()`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 > Stability: 1 - Experimental
@@ -1711,20 +1711,18 @@ the script name. These options are useful in order to spawn child processes with
 the same execution environment as the parent.
 
 ```bash
-node --harmony script.js --version
+node --icu-data-dir=./foo --require ./bar.js script.js --version
 ```
 
 Results in `process.execArgv`:
 
-<!-- eslint-disable semi -->
-
-```js
-['--harmony']
+```json
+["--icu-data-dir=./foo", "--require", "./bar.js"]
 ```
 
 And `process.argv`:
 
-<!-- eslint-disable semi -->
+<!-- eslint-disable @stylistic/js/semi -->
 
 ```js
 ['/usr/local/bin/node', 'script.js', '--version']
@@ -1744,7 +1742,7 @@ added: v0.1.100
 The `process.execPath` property returns the absolute pathname of the executable
 that started the Node.js process. Symbolic links, if any, are resolved.
 
-<!-- eslint-disable semi -->
+<!-- eslint-disable @stylistic/js/semi -->
 
 ```js
 '/usr/local/bin/node'
@@ -2285,7 +2283,9 @@ debugger. See [Signal Events][].
 ## `process.loadEnvFile(path)`
 
 <!-- YAML
-added: v21.7.0
+added:
+  - v21.7.0
+  - v20.12.0
 -->
 
 > Stability: 1.1 - Active development

@@ -106,7 +106,9 @@ If this flag is passed, the behavior can still be set to not abort through
 ### `--allow-addons`
 
 <!-- YAML
-added: v21.6.0
+added:
+  - v21.6.0
+  - v20.12.0
 -->
 
 > Stability: 1.1 - Active development
@@ -367,7 +369,9 @@ Currently the support for run-time snapshot is experimental in that:
 ### `--build-snapshot-config`
 
 <!-- YAML
-added: v21.6.0
+added:
+  - v21.6.0
+  - v20.12.0
 -->
 
 > Stability: 1 - Experimental
@@ -590,16 +594,20 @@ added:
   - v16.4.0
   - v14.18.0
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/52492
+    description: The `ipv6first` is supported now.
   - version: v17.0.0
     pr-url: https://github.com/nodejs/node/pull/39987
     description: Changed default value to `verbatim`.
 -->
 
-Set the default value of `verbatim` in [`dns.lookup()`][] and
+Set the default value of `order` in [`dns.lookup()`][] and
 [`dnsPromises.lookup()`][]. The value could be:
 
-* `ipv4first`: sets default `verbatim` `false`.
-* `verbatim`: sets default `verbatim` `true`.
+* `ipv4first`: sets default `order` to `ipv4first`.
+* `ipv6first`: sets default `order` to `ipv6first`.
+* `verbatim`: sets default `order` to `verbatim`.
 
 The default is `verbatim` and [`dns.setDefaultResultOrder()`][] have higher
 priority than `--dns-result-order`.
@@ -667,7 +675,9 @@ of `--enable-source-maps`.
 <!-- YAML
 added: v20.6.0
 changes:
-  - version: v21.7.0
+  - version:
+    - v21.7.0
+    - v20.12.0
     pr-url: https://github.com/nodejs/node/pull/51289
     description: Add support to multi-line values.
 -->
@@ -875,12 +885,14 @@ following permissions are restricted:
 added: v11.8.0
 -->
 
+> Stability: 0 - Deprecated: Will be removed shortly.
+
 Use the specified file as a security policy.
 
 ### `--experimental-require-module`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 > Stability: 1.1 - Active Developement
@@ -1210,7 +1222,7 @@ When enabled, the parser will accept the following:
 * Allow message containing both `Transfer-Encoding`
   and `Content-Length` headers.
 * Allow extra data after message when `Connection: close` is present.
-* Allow extra trasfer encodings after `chunked` has been provided.
+* Allow extra transfer encodings after `chunked` has been provided.
 * Allow `\n` to be used as token separator instead of `\r\n`.
 * Allow `\r\n` not to be provided after a chunk.
 * Allow spaces to be present after a chunk size and before `\r\n`.
@@ -1323,6 +1335,15 @@ added: v7.10.0
 
 This option is a no-op. It is kept for compatibility.
 
+### `--network-family-autoselection-attempt-timeout`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+Sets the default value for the network family autoselection attempt timeout.
+For more information, see [`net.getDefaultAutoSelectFamilyAttemptTimeout()`][].
+
 ### `--no-addons`
 
 <!-- YAML
@@ -1343,14 +1364,6 @@ added: v0.8.0
 
 Silence deprecation warnings.
 
-### `--no-experimental-fetch`
-
-<!-- YAML
-added: v18.0.0
--->
-
-Disable exposition of [Fetch API][] on the global scope.
-
 ### `--no-experimental-global-customevent`
 
 <!-- YAML
@@ -1369,14 +1382,6 @@ added: v21.2.0
 
 Disable exposition of [Navigator API][] on the global scope.
 
-### `--no-experimental-global-webcrypto`
-
-<!-- YAML
-added: v19.0.0
--->
-
-Disable exposition of [Web Crypto API][] on the global scope.
-
 ### `--no-experimental-repl-await`
 
 <!-- YAML
@@ -1388,7 +1393,7 @@ Use this flag to disable top-level await in REPL.
 ### `--no-experimental-websocket`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Use this flag to disable experimental [`WebSocket`][] support.
@@ -1513,7 +1518,7 @@ developers may leverage to detect deprecated API usage.
 added: v12.7.0
 -->
 
-> Stability: 1 - Experimental
+> Stability: 0 - Deprecated: Will be removed shortly.
 
 Instructs Node.js to error prior to running any code if the policy does not have
 the specified integrity. It expects a [Subresource Integrity][] string as a
@@ -1599,7 +1604,7 @@ Identical to `-e` but prints the result.
 ### `--experimental-print-required-tla`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 This flag is only useful when `--experimental-require-module` is enabled.
@@ -1780,7 +1785,7 @@ native stack and other runtime environment data.
 ### `--report-exclude-network`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Exclude `header.networkInterfaces` from the diagnostic report. By default
@@ -1800,6 +1805,50 @@ rules. `module` may be either a path to a file, or a node module name.
 Only CommonJS modules are supported.
 Use [`--import`][] to preload an [ECMAScript module][].
 Modules preloaded with `--require` will run before modules preloaded with `--import`.
+
+### `--run`
+
+<!-- YAML
+added: v22.0.0
+-->
+
+> Stability: 1.1 - Active development
+
+This runs a specified command from a package.json's `"scripts"` object.
+If no `"command"` is provided, it will list the available scripts.
+
+`--run` prepends `./node_modules/.bin`, relative to the current
+working directory, to the `PATH` in order to execute the binaries from
+dependencies.
+
+For example, the following command will run the `test` script of
+the `package.json` in the current folder:
+
+```console
+$ node --run test
+```
+
+You can also pass arguments to the command. Any argument after `--` will
+be appended to the script:
+
+```console
+$ node --run test -- --verbose
+```
+
+#### Intentional limitations
+
+`node --run` is not meant to match the behaviors of `npm run` or of the `run`
+commands of other package managers. The Node.js implementation is intentionally
+more limited, in order to focus on top performance for the most common use
+cases.
+Some features of other `run` implementations that are intentionally excluded
+are:
+
+* Searching for `package.json` files outside the current folder.
+* Prepending the `.bin` or `node_modules/.bin` paths of folders outside the
+  current folder.
+* Running `pre` or `post` scripts in addition to the specified script.
+* Defining package manager-specific environment variables.
 
 ### `--secure-heap=n`
 
@@ -1899,7 +1948,7 @@ concurrently. The default value is `os.availableParallelism() - 1`.
 ### `--test-force-exit`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Configures the test runner to exit the process once all known tests have
@@ -1918,6 +1967,9 @@ changes:
 A regular expression that configures the test runner to only execute tests
 whose name matches the provided pattern. See the documentation on
 [filtering tests by name][] for more details.
+
+If both `--test-name-pattern` and `--test-skip-pattern` are supplied,
+tests must satisfy **both** requirements in order to be executed.
 
 ### `--test-only`
 
@@ -1986,6 +2038,20 @@ node --test --test-shard=1/3
 node --test --test-shard=2/3
 node --test --test-shard=3/3
 ```
+
+### `--test-skip-pattern`
+
+<!-- YAML
+added:
+  - REPLACEME
+-->
+
+A regular expression that configures the test runner to skip tests
+whose name matches the provided pattern. See the documentation on
+[filtering tests by name][] for more details.
+
+If both `--test-name-pattern` and `--test-skip-pattern` are supplied,
+tests must satisfy **both** requirements in order to be executed.
 
 ### `--test-timeout`
 
@@ -2341,7 +2407,7 @@ added:
   - v18.11.0
   - v16.19.0
 changes:
-  - version: REPLACEME
+  - version: v22.0.0
     pr-url: https://github.com/nodejs/node/pull/52074
     description: Watch mode is now stable.
   - version:
@@ -2374,7 +2440,7 @@ added:
   - v18.11.0
   - v16.19.0
 changes:
-  - version: REPLACEME
+  - version: v22.0.0
     pr-url: https://github.com/nodejs/node/pull/52074
     description: Watch mode is now stable.
 -->
@@ -2435,6 +2501,34 @@ Any other value will result in colorized output being disabled.
 
 [`NO_COLOR`][]  is an alias for `NODE_DISABLE_COLORS`. The value of the
 environment variable is arbitrary.
+
+### `NODE_COMPILE_CACHE=dir`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+> Stability: 1.1 - Active Development
+
+When set, whenever Node.js compiles a CommonJS or a ECMAScript Module,
+it will use on-disk [V8 code cache][] persisted in the specified directory
+to speed up the compilation. This may slow down the first load of a
+module graph, but subsequent loads of the same module graph may get
+a significant speedup if the contents of the modules do not change.
+
+To clean up the generated code cache, simply remove the directory.
+It will be recreated the next time the same directory is used for
+`NODE_COMPILE_CACHE`.
+
+Compilation cache generated by one version of Node.js may not be used
+by a different version of Node.js. Cache generated by different versions
+of Node.js will be stored separately if the same directory is used
+to persist the cache, so they can co-exist.
+
+Caveat: currently when using this with [V8 JavaScript code coverage][], the
+coverage being collected by V8 may be less precise in functions that are
+deserialized from the code cache. It's recommended to turn this off when
+running tests to generate precise coverage.
 
 ### `NODE_DEBUG=module[,…]`
 
@@ -2585,12 +2679,11 @@ one is included in the list below.
 * `--inspect`
 * `--max-http-header-size`
 * `--napi-modules`
+* `--network-family-autoselection-attempt-timeout`
 * `--no-addons`
 * `--no-deprecation`
-* `--no-experimental-fetch`
 * `--no-experimental-global-customevent`
 * `--no-experimental-global-navigator`
-* `--no-experimental-global-webcrypto`
 * `--no-experimental-repl-await`
 * `--no-experimental-websocket`
 * `--no-extra-info-on-fatal-exception`
@@ -3064,7 +3157,6 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [DEP0025 warning]: deprecations.md#dep0025-requirenodesys
 [ECMAScript module]: esm.md#modules-ecmascript-modules
 [ExperimentalWarning: `vm.measureMemory` is an experimental feature]: vm.md#vmmeasurememoryoptions
-[Fetch API]: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
 [File System Permissions]: permissions.md#file-system-permissions
 [Loading ECMAScript modules using `require()`]: modules.md#loading-ecmascript-modules-using-require
 [Module customization hooks]: module.md#customization-hooks
@@ -3080,7 +3172,7 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [Source Map]: https://sourcemaps.info/spec.html
 [Subresource Integrity]: https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity
 [V8 JavaScript code coverage]: https://v8project.blogspot.com/2017/12/javascript-code-coverage.html
-[Web Crypto API]: webcrypto.md
+[V8 code cache]: https://v8.dev/blog/code-caching-for-devs
 [`"type"`]: packages.md#type
 [`--allow-child-process`]: #--allow-child-process
 [`--allow-fs-read`]: #--allow-fs-read
@@ -3111,6 +3203,7 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [`dns.setDefaultResultOrder()`]: dns.md#dnssetdefaultresultorderorder
 [`dnsPromises.lookup()`]: dns.md#dnspromiseslookuphostname-options
 [`import` specifier]: esm.md#import-specifiers
+[`net.getDefaultAutoSelectFamilyAttemptTimeout()`]: net.md#netgetdefaultautoselectfamilyattempttimeout
 [`process.setUncaughtExceptionCaptureCallback()`]: process.md#processsetuncaughtexceptioncapturecallbackfn
 [`process.setuid()`]: process.md#processsetuidid
 [`setuid(2)`]: https://man7.org/linux/man-pages/man2/setuid.2.html

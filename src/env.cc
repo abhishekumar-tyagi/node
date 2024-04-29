@@ -1089,6 +1089,30 @@ void Environment::InitializeLibuv() {
   StartProfilerIdleNotifier();
 }
 
+void Environment::InitializeCompileCache() {
+  std::string dir_from_env;
+  if (!credentials::SafeGetenv(
+          "NODE_COMPILE_CACHE", &dir_from_env, env_vars()) ||
+      dir_from_env.empty()) {
+    return;
+  }
+  if (!options()->experimental_policy.empty()) {
+    Debug(this,
+          DebugCategory::COMPILE_CACHE,
+          "[compile cache] skipping cache because policy is enabled");
+    return;
+  }
+  auto handler = std::make_unique<CompileCacheHandler>(this);
+  if (handler->InitializeDirectory(this, dir_from_env)) {
+    compile_cache_handler_ = std::move(handler);
+    AtExit(
+        [](void* env) {
+          static_cast<Environment*>(env)->compile_cache_handler()->Persist();
+        },
+        this);
+  }
+}
+
 void Environment::ExitEnv(StopFlags::Flags flags) {
   // Should not access non-thread-safe methods here.
   set_stopping(true);
