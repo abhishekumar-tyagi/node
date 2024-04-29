@@ -892,7 +892,7 @@ Use the specified file as a security policy.
 ### `--experimental-require-module`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 > Stability: 1.1 - Active Developement
@@ -1364,14 +1364,6 @@ added: v0.8.0
 
 Silence deprecation warnings.
 
-### `--no-experimental-global-customevent`
-
-<!-- YAML
-added: v19.0.0
--->
-
-Disable exposition of [CustomEvent Web API][] on the global scope.
-
 ### `--no-experimental-global-navigator`
 
 <!-- YAML
@@ -1393,7 +1385,7 @@ Use this flag to disable top-level await in REPL.
 ### `--no-experimental-websocket`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Use this flag to disable experimental [`WebSocket`][] support.
@@ -1604,7 +1596,7 @@ Identical to `-e` but prints the result.
 ### `--experimental-print-required-tla`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 This flag is only useful when `--experimental-require-module` is enabled.
@@ -1785,7 +1777,7 @@ native stack and other runtime environment data.
 ### `--report-exclude-network`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Exclude `header.networkInterfaces` from the diagnostic report. By default
@@ -1809,7 +1801,7 @@ Modules preloaded with `--require` will run before modules preloaded with `--imp
 ### `--run`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 > Stability: 1.1 - Active development
@@ -1948,7 +1940,7 @@ concurrently. The default value is `os.availableParallelism() - 1`.
 ### `--test-force-exit`
 
 <!-- YAML
-added: REPLACEME
+added: v22.0.0
 -->
 
 Configures the test runner to exit the process once all known tests have
@@ -2407,7 +2399,7 @@ added:
   - v18.11.0
   - v16.19.0
 changes:
-  - version: REPLACEME
+  - version: v22.0.0
     pr-url: https://github.com/nodejs/node/pull/52074
     description: Watch mode is now stable.
   - version:
@@ -2440,7 +2432,7 @@ added:
   - v18.11.0
   - v16.19.0
 changes:
-  - version: REPLACEME
+  - version: v22.0.0
     pr-url: https://github.com/nodejs/node/pull/52074
     description: Watch mode is now stable.
 -->
@@ -2682,7 +2674,6 @@ one is included in the list below.
 * `--network-family-autoselection-attempt-timeout`
 * `--no-addons`
 * `--no-deprecation`
-* `--no-experimental-global-customevent`
 * `--no-experimental-global-navigator`
 * `--no-experimental-repl-await`
 * `--no-experimental-websocket`
@@ -3153,7 +3144,6 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [Chrome DevTools Protocol]: https://chromedevtools.github.io/devtools-protocol/
 [CommonJS]: modules.md
 [CommonJS module]: modules.md
-[CustomEvent Web API]: https://dom.spec.whatwg.org/#customevent
 [DEP0025 warning]: deprecations.md#dep0025-requirenodesys
 [ECMAScript module]: esm.md#modules-ecmascript-modules
 [ExperimentalWarning: `vm.measureMemory` is an experimental feature]: vm.md#vmmeasurememoryoptions

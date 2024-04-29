@@ -197,7 +197,7 @@
       'src/dataqueue/queue.h',
       'src/debug_utils.h',
       'src/debug_utils-inl.h',
-      'src/embeded_data.h',
+      'src/embedded_data.h',
       'src/encoding_binding.h',
       'src/env_properties.h',
       'src/env.h',
@@ -482,8 +482,20 @@
     },
 
     'conditions': [
+      # Pointer authentication for ARM64.
       ['target_arch=="arm64"', {
-        'cflags': ['-mbranch-protection=standard'],  # Pointer authentication.
+          'target_conditions': [
+              ['_toolset=="host"', {
+                  'conditions': [
+                      ['host_arch=="arm64"', {
+                          'cflags': ['-mbranch-protection=standard'],
+                      }],
+                  ],
+              }],
+              ['_toolset=="target"', {
+                  'cflags': ['-mbranch-protection=standard'],
+              }],
+          ],
       }],
       ['OS in "aix os400"', {
         'ldflags': [
