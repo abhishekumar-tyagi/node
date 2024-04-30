@@ -5,7 +5,7 @@ XXX.....X..X...X....
 
 Failed tests:
 
-✖ sync fail todo (0.5888ms) # TODO
+✖ sync fail todo (*ms) # TODO
   Error: thrown from sync fail todo
       *
       *
@@ -14,7 +14,7 @@ Failed tests:
       *
       *
       *
-✖ sync fail todo with message (0.2438ms) # this is a failing todo
+✖ sync fail todo with message (*ms) # this is a failing todo
   Error: thrown from sync fail todo with message
       *
       *
@@ -23,7 +23,7 @@ Failed tests:
       *
       *
       *
-✖ sync throw fail (0.2247ms)
+✖ sync throw fail (*ms)
   Error: thrown from sync throw fail
       *
       *
@@ -32,7 +32,7 @@ Failed tests:
       *
       *
       *
-✖ async throw fail (1.0176ms)
+✖ async throw fail (*ms)
   Error: thrown from async throw fail
       *
       *
@@ -41,7 +41,7 @@ Failed tests:
       *
       *
       *
-﹣ async skip fail (0.343ms) # SKIP
+﹣ async skip fail (*ms) # SKIP
   Error: thrown from async throw fail
       *
       *
@@ -50,7 +50,7 @@ Failed tests:
       *
       *
       *
-✖ async assertion fail (2.7152ms)
+✖ async assertion fail (*ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
   
   true !== false
@@ -68,7 +68,7 @@ Failed tests:
     expected: false,
     operator: 'strictEqual'
   }
-✖ reject fail (0.3434ms)
+✖ reject fail (*ms)
   Error: rejected from reject fail
       *
       *
@@ -77,7 +77,7 @@ Failed tests:
       *
       *
       *
-  ✖ +sync throw fail (0.2289ms)
+  ✖ +sync throw fail (*ms)
     Error: thrown from subtest sync throw fail
         *
         *
@@ -89,15 +89,15 @@ Failed tests:
         *
         *
         *
-✖ subtest sync throw fail (0.6737ms)
+✖ subtest sync throw fail (*ms)
   '1 subtest failed'
-✖ sync throw non-error fail (0.3685ms)
+✖ sync throw non-error fail (*ms)
   Symbol(thrown symbol from sync throw non-error fail)
-  ✖ +long running (1.4232ms)
+  ✖ +long running (*ms)
     'test did not finish before its parent and was cancelled'
-✖ top level (1.3747ms)
+✖ top level (*ms)
   '1 subtest failed'
-✖ sync skip option is false fail (0.2162ms)
+✖ sync skip option is false fail (*ms)
   Error: this should be executed
       *
       *
@@ -106,13 +106,13 @@ Failed tests:
       *
       *
       *
-✖ callback fail (0.632ms)
+✖ callback fail (*ms)
   Error: callback failure
       *
       *
-✖ callback also returns a Promise (0.2499ms)
+✖ callback also returns a Promise (*ms)
   'passed a callback but also returned a Promise'
-✖ callback throw (0.2055ms)
+✖ callback throw (*ms)
   Error: thrown from callback throw
       *
       *
@@ -121,24 +121,24 @@ Failed tests:
       *
       *
       *
-✖ callback called twice (0.1711ms)
+✖ callback called twice (*ms)
   'callback invoked multiple times'
-✖ callback called twice in future tick (2.9922ms)
+✖ callback called twice in future tick (*ms)
   Error [ERR_TEST_FAILURE]: callback invoked multiple times
       * {
     code: 'ERR_TEST_FAILURE',
     failureType: 'multipleCallbackInvocations',
     cause: 'callback invoked multiple times'
   }
-✖ callback async throw (0.7809ms)
+✖ callback async throw (*ms)
   Error: thrown from callback async throw
       *
       *
-✖ custom inspect symbol fail (0.5309ms)
+✖ custom inspect symbol fail (*ms)
   customized
-✖ custom inspect symbol that throws fail (2.4636ms)
+✖ custom inspect symbol that throws fail (*ms)
   { foo: 1, [Symbol(nodejs.util.inspect.custom)]: [Function: [nodejs.util.inspect.custom]] }
-  ✖ sync throw fails at first (0.1774ms)
+  ✖ sync throw fails at first (*ms)
     Error: thrown from subtest sync throw fails at first
         *
         *
@@ -150,7 +150,7 @@ Failed tests:
         *
         *
         *
-  ✖ sync throw fails at second (0.1261ms)
+  ✖ sync throw fails at second (*ms)
     Error: thrown from subtest sync throw fails at second
         *
         *
@@ -160,25 +160,25 @@ Failed tests:
         *
         *
         *
-✖ subtest sync throw fails (0.6118ms)
+✖ subtest sync throw fails (*ms)
   '2 subtests failed'
-✖ timed out async test (14.7614ms)
-  'test timed out after 5ms'
-✖ timed out callback test (17.1008ms)
-  'test timed out after 5ms'
-✖ rejected thenable (0.2498ms)
+✖ timed out async test (*ms)
+  'test timed out after *ms'
+✖ timed out callback test (*ms)
+  'test timed out after *ms'
+✖ rejected thenable (*ms)
   'custom error'
-✖ unfinished test with uncaughtException (1.3337ms)
+✖ unfinished test with uncaughtException (*ms)
   Error: foo
       *
       *
       *
-✖ unfinished test with unhandledRejection (1.0768ms)
+✖ unfinished test with unhandledRejection (*ms)
   Error: bar
       *
       *
       *
-✖ assertion errors display actual and expected properly (17.7021ms)
+✖ assertion errors display actual and expected properly (*ms)
   AssertionError [ERR_ASSERTION]: Expected values to be loosely deep-equal:
   
   {
@@ -221,5 +221,5 @@ Failed tests:
     expected: [Object],
     operator: 'deepEqual'
   }
-✖ invalid subtest fail (0.8032ms)
+✖ invalid subtest fail (*ms)
   'test could not be started because its parent finished'
