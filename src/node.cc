@@ -214,44 +214,6 @@ void Environment::InitializeInspector(
 }
 #endif  // HAVE_INSPECTOR
 
-#define ATOMIC_WAIT_EVENTS(V)                                               \
-  V(kStartWait,           "started")                                        \
-  V(kWokenUp,             "was woken up by another thread")                 \
-  V(kTimedOut,            "timed out")                                      \
-  V(kTerminatedExecution, "was stopped by terminated execution")            \
-  V(kAPIStopped,          "was stopped through the embedder API")           \
-  V(kNotEqual,            "did not wait because the values mismatched")     \
-
-static void AtomicsWaitCallback(Isolate::AtomicsWaitEvent event,
-                                Local<v8::SharedArrayBuffer> array_buffer,
-                                size_t offset_in_bytes, int64_t value,
-                                double timeout_in_ms,
-                                Isolate::AtomicsWaitWakeHandle* stop_handle,
-                                void* data) {
-  Environment* env = static_cast<Environment*>(data);
-
-  const char* message = "(unknown event)";
-  switch (event) {
-#define V(key, msg)                         \
-    case Isolate::AtomicsWaitEvent::key:    \
-      message = msg;                        \
-      break;
-    ATOMIC_WAIT_EVENTS(V)
-#undef V
-  }
-
-  fprintf(stderr,
-          "(node:%d) [Thread %" PRIu64 "] Atomics.wait(%p + %zx, %" PRId64
-          ", %.f) %s\n",
-          static_cast<int>(uv_os_getpid()),
-          env->thread_id(),
-          array_buffer->Data(),
-          offset_in_bytes,
-          value,
-          timeout_in_ms,
-          message);
-}
-
 void Environment::InitializeDiagnostics() {
   isolate_->GetHeapProfiler()->AddBuildEmbedderGraphCallback(
       Environment::BuildEmbedderGraph, this);
@@ -260,17 +222,6 @@ void Environment::InitializeDiagnostics() {
   }
   if (options_->trace_uncaught)
     isolate_->SetCaptureStackTraceForUncaughtExceptions(true);
-  if (options_->trace_atomics_wait) {
-    ProcessEmitDeprecationWarning(
-        Environment::GetCurrent(isolate_),
-        "The flag --trace-atomics-wait is deprecated.",
-        "DEP0165");
-    isolate_->SetAtomicsWaitCallback(AtomicsWaitCallback, this);
-    AddCleanupHook([](void* data) {
-      Environment* env = static_cast<Environment*>(data);
-      env->isolate()->SetAtomicsWaitCallback(nullptr, nullptr);
-    }, this);
-  }
   if (options_->trace_promises) {
     isolate_->SetPromiseHook(TracePromises);
   }
@@ -429,7 +380,7 @@ typedef void (*sigaction_cb)(int signo, siginfo_t* info, void* ucontext);
 #endif
 #if NODE_USE_V8_WASM_TRAP_HANDLER
 #if defined(_WIN32)
-static LONG TrapWebAssemblyOrContinue(EXCEPTION_POINTERS* exception) {
+static LONG WINAPI TrapWebAssemblyOrContinue(EXCEPTION_POINTERS* exception) {
   if (v8::TryHandleWebAssemblyTrapWindows(exception)) {
     return EXCEPTION_CONTINUE_EXECUTION;
   }
@@ -635,13 +586,6 @@ static void PlatformInit(ProcessInitializationFlags::Flags flags) {
     RegisterSignalHandler(SIGTERM, SignalExit, true);
 
 #if NODE_USE_V8_WASM_TRAP_HANDLER
-#if defined(_WIN32)
-    {
-      constexpr ULONG first = TRUE;
-      per_process::old_vectored_exception_handler =
-          AddVectoredExceptionHandler(first, TrapWebAssemblyOrContinue);
-    }
-#else
     // Tell V8 to disable emitting WebAssembly
     // memory bounds checks. This means that we have
     // to catch the SIGSEGV/SIGBUS in TrapWebAssemblyOrContinue
@@ -657,7 +601,6 @@ static void PlatformInit(ProcessInitializationFlags::Flags flags) {
       CHECK_EQ(sigaction(SIGBUS, &sa, nullptr), 0);
 #endif
     }
-#endif  // defined(_WIN32)
     V8::EnableWebAssemblyTrapHandler(false);
 #endif  // NODE_USE_V8_WASM_TRAP_HANDLER
   }
@@ -686,6 +629,14 @@ static void PlatformInit(ProcessInitializationFlags::Flags flags) {
   }
 #endif  // __POSIX__
 #ifdef _WIN32
+#ifdef NODE_USE_V8_WASM_TRAP_HANDLER
+  {
+    constexpr ULONG first = TRUE;
+    per_process::old_vectored_exception_handler =
+        AddVectoredExceptionHandler(first, TrapWebAssemblyOrContinue);
+  }
+  V8::EnableWebAssemblyTrapHandler(false);
+#endif  // NODE_USE_V8_WASM_TRAP_HANDLER
   if (!(flags & ProcessInitializationFlags::kNoStdioInitialization)) {
     for (int fd = 0; fd <= 2; ++fd) {
       auto handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));

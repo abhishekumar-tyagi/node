@@ -402,11 +402,7 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             &EnvironmentOptions::experimental_websocket,
             kAllowedInEnvvar,
             true);
-  AddOption("--experimental-global-customevent",
-            "expose experimental CustomEvent on the global scope",
-            &EnvironmentOptions::experimental_global_customevent,
-            kAllowedInEnvvar,
-            true);
+  AddOption("--experimental-global-customevent", "", NoOp{}, kAllowedInEnvvar);
   AddOption("--experimental-global-navigator",
             "expose experimental Navigator API on the global scope",
             &EnvironmentOptions::experimental_global_navigator,
@@ -667,10 +663,6 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
   AddOption("--throw-deprecation",
             "throw an exception on deprecations",
             &EnvironmentOptions::throw_deprecation,
-            kAllowedInEnvvar);
-  AddOption("--trace-atomics-wait",
-            "(deprecated) trace Atomics.wait() operations",
-            &EnvironmentOptions::trace_atomics_wait,
             kAllowedInEnvvar);
   AddOption("--trace-deprecation",
             "show stack traces on deprecations",
