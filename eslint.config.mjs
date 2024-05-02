@@ -49,20 +49,20 @@ export default [
   jsdoc.configs['flat/recommended'],
   {
     ignores: [
-      'node_modules',
+      '**/node_modules/**',
       'lib/punycode.js',
       'test/addons/??_*',
-      'test/fixtures',
+      'test/fixtures/**',
       'test/message/esm_display_syntax_error.mjs',
-      'tools/icu',
+      'tools/icu/**',
       'tools/lint-md/lint-md.mjs',
-      'tools/github_reporter',
-      'benchmark/tmp',
-      'benchmark/fixtures',
-      // 'doc/**/*.js',
+      'tools/github_reporter/**',
+      'benchmark/tmp/**',
+      'benchmark/fixtures/**',
+      'doc/**/*.js',
       'doc/changelogs/CHANGELOG_v1*.md',
-      // '!doc/changelogs/CHANGELOG_v18.md',
-      // '!doc/api_assets/*.js',
+      '!doc/changelogs/CHANGELOG_v18.md',
+      '!doc/api_assets/*.js',
     ],
   },
   {
@@ -407,6 +407,14 @@ export default [
         message: 'Import process instead of using the global',
       },
     ] },
+  },
+  {
+    files: ['doc/api_assets/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
   },
   // #endregion
   // #region lib
@@ -977,7 +985,7 @@ export default [
       // `common` module is mandatory in tests.
       'node-core/required-modules': [
         'error',
-        { common: "common(/index\\.(m)?js)?$" },
+        { common: 'common(/index\\.(m)?js)?$' },
       ],
       'node-core/require-common-first': 'error',
       'node-core/no-duplicate-requires': 'off',
