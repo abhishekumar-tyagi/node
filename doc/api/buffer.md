@@ -1393,7 +1393,7 @@ appropriate for `Buffer.from()` variants.
 [`Buffer.from(string)`][] may also use the internal `Buffer` pool like
 [`Buffer.allocUnsafe()`][] does.
 
-##. Static method: `Buffer.isBuffer(obj)`
+\##. Static method: `Buffer.isBuffer(obj)`
 
 <!-- YAML
 added: v0.1.101
