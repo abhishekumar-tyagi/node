@@ -328,6 +328,14 @@ li.picker-header a span {
   background-color: var(--blue1);
 }
 
+.api_warning {
+  background-color: var(--red3);
+  color: var(--white) !important;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
 .module_stability {
   vertical-align: middle;
 }
