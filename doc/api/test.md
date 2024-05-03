@@ -134,6 +134,43 @@ Any subtests that are still outstanding when their parent finishes
 are cancelled and treated as failures. Any subtest failures cause the parent
 test to fail.
 
+## Retrying tests
+
+<!-- YAML
+added:
+  - REPLACEME
+-->
+
+Failed tests can be retried via a hardcoded `{ retries }` option, or
+via the dynamic `retries()` TestContext prototype method.
+
+Via the `.currentAttempt` property, the current attempt (the number of times
+the test has been been retried, zero-indexed) can be accessed. Via
+the `.retryCount` property, the number of retries can also be accessed.
+
+These tests will continue running until a successful execution, or
+until the maximum number of retries has been met.
+
+```js
+test('hardcoded retries', { retries: 5 }, () => {
+  console.log(`Currently on attempt ${t.currentAttempt}`);
+});
+
+test('dynamic retries', (t) => {
+  t.retries(5);
+
+  console.log(`Currently on attempt ${t.currentAttempt}`);
+});
+
+test('dynamic and hardcoded retries', { retries: 3 }, (t) => {
+  t.retries(5);
+  // This will take precedence, as it was called
+  // most recently.
+
+  console.log(`Currently on attempt ${t.currentAttempt}`);
+});
+```
+
 ## Skipping tests
 
 Individual tests can be skipped by passing the `skip` option to the test, or by
