@@ -6,6 +6,7 @@
 #include "base_object-inl.h"
 #include "node_context_data.h"
 #include "node_errors.h"
+#include "cppgc_helpers.h"
 
 namespace node {
 class ExternalReferenceRegistry;
@@ -134,16 +135,13 @@ class ContextifyContext : public BaseObject {
   std::unique_ptr<v8::MicrotaskQueue> microtask_queue_;
 };
 
-class ContextifyScript : public BaseObject {
+class ContextifyScript final
+    : public cppgc::GarbageCollected<ContextifyScript>,
+      public cppgc::NameProvider,
+      public CppgcMixin {
  public:
-  enum InternalFields {
-    kUnboundScriptSlot = BaseObject::kInternalFieldCount,
-    kInternalFieldCount
-  };
-
-  SET_NO_MEMORY_INFO()
-  SET_MEMORY_INFO_NAME(ContextifyScript)
-  SET_SELF_SIZE(ContextifyScript)
+  SET_CPPGC_NAME(ContextifyScript)
+  void Trace(cppgc::Visitor* visitor) const final;
 
   ContextifyScript(Environment* env, v8::Local<v8::Object> object);
   ~ContextifyScript() override;
@@ -165,7 +163,7 @@ class ContextifyScript : public BaseObject {
                           const v8::FunctionCallbackInfo<v8::Value>& args);
 
  private:
-  v8::Global<v8::UnboundScript> script_;
+  v8::TracedReference<v8::UnboundScript> script_;
 };
 
 v8::Maybe<bool> StoreCodeCacheResult(

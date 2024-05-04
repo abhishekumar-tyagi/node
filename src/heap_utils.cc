@@ -18,6 +18,7 @@
 #endif
 
 using v8::Array;
+using v8::Data;
 using v8::Boolean;
 using v8::Context;
 using v8::EmbedderGraph;
@@ -49,17 +50,20 @@ class JSGraphJSNode : public EmbedderGraph::Node {
   const char* Name() override { return "<JS Node>"; }
   size_t SizeInBytes() override { return 0; }
   bool IsEmbedderNode() override { return false; }
-  Local<Value> JSValue() { return PersistentToLocal::Strong(persistent_); }
+  Local<Data> V8Value() { return PersistentToLocal::Strong(persistent_); }
 
   int IdentityHash() {
-    Local<Value> v = JSValue();
+    Local<Data> d = V8Value();
+    // TODO(joyeecheung): return something better?
+    if (!d->IsValue()) return reinterpret_cast<std::uintptr_t>(this);
+    Local<Value> v = d.As<Value>();
     if (v->IsObject()) return v.As<Object>()->GetIdentityHash();
     if (v->IsName()) return v.As<v8::Name>()->GetIdentityHash();
     if (v->IsInt32()) return v.As<v8::Int32>()->Value();
     return 0;
   }
 
-  JSGraphJSNode(Isolate* isolate, Local<Value> val)
+  JSGraphJSNode(Isolate* isolate, Local<Data> val)
       : persistent_(isolate, val) {
     CHECK(!val.IsEmpty());
   }
@@ -72,19 +76,27 @@ class JSGraphJSNode : public EmbedderGraph::Node {
 
   struct Equal {
     inline bool operator()(JSGraphJSNode* a, JSGraphJSNode* b) const {
-      return a->JSValue()->SameValue(b->JSValue());
+      Local<Data> data_a = a->V8Value();
+      Local<Data> data_b = a->V8Value();
+      if (data_a->IsValue()) {
+        if (!data_b->IsValue()) {
+          return false;
+        }
+        return data_a.As<Value>()->SameValue(data_b.As<Value>());
+      }
+      return data_a == data_b;
     }
   };
 
  private:
-  Global<Value> persistent_;
+  Global<Data> persistent_;
 };
 
 class JSGraph : public EmbedderGraph {
  public:
   explicit JSGraph(Isolate* isolate) : isolate_(isolate) {}
 
-  Node* V8Node(const Local<Value>& value) override {
+  Node* V8Node(const Local<v8::Data>& value) override {
     std::unique_ptr<JSGraphJSNode> n { new JSGraphJSNode(isolate_, value) };
     auto it = engine_nodes_.find(n.get());
     if (it != engine_nodes_.end())
@@ -153,8 +165,8 @@ class JSGraph : public EmbedderGraph {
         if (nodes->Set(context, i++, obj).IsNothing())
           return MaybeLocal<Array>();
         if (!n->IsEmbedderNode()) {
-          value = static_cast<JSGraphJSNode*>(n.get())->JSValue();
-          if (obj->Set(context, value_string, value).IsNothing())
+          Local<Data> data = static_cast<JSGraphJSNode*>(n.get())->V8Value();
+          if (data->IsValue() && obj->Set(context, value_string, data.As<Value>()).IsNothing())
             return MaybeLocal<Array>();
         }
       }
