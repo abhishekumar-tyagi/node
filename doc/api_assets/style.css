@@ -329,7 +329,7 @@ li.picker-header a span {
 }
 
 .api_warning {
-  background-color: var(--red3);
+  border: 5px solid var(--red2);
   color: var(--white) !important;
   margin: 0 0 1rem;
   padding: 1rem;
