@@ -26,7 +26,7 @@ function isTopLevel(node) {
 }
 
 module.exports = (context) => {
-  if (context.parserOptions.sourceType === 'module') {
+  if (context.languageOptions.sourceType === 'module') {
     return {};
   }
 
