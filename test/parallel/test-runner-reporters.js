@@ -25,7 +25,7 @@ describe('node:test reporters', { concurrency: true }, () => {
   it('should default destination to stdout when passing a single reporter', async () => {
     const child = spawnSync(process.execPath, ['--test', '--test-reporter', 'dot', testFile]);
     assert.strictEqual(child.stderr.toString(), '');
-    assert.match(child.stdout.toString(), /.XX.\n/);
+    assert.match(child.stdout.toString(), /\.XX\.\n/);
     assert.match(child.stdout.toString(), /Failed tests:/);
     assert.match(child.stdout.toString(), /✖ failing/);
     assert.match(child.stdout.toString(), /✖ nested/);
@@ -47,7 +47,7 @@ describe('node:test reporters', { concurrency: true }, () => {
     const child = spawnSync(process.execPath,
                             ['--test', '--test-reporter', 'dot', '--test-reporter-destination', 'stdout', testFile]);
     assert.strictEqual(child.stderr.toString(), '');
-    assert.match(child.stdout.toString(), /.XX.\n/);
+    assert.match(child.stdout.toString(), /\.XX\.\n/);
     assert.match(child.stdout.toString(), /Failed tests:/);
     assert.match(child.stdout.toString(), /✖ failing/);
     assert.match(child.stdout.toString(), /✖ nested/);
@@ -56,7 +56,7 @@ describe('node:test reporters', { concurrency: true }, () => {
   it('should support stderr as a destination', async () => {
     const child = spawnSync(process.execPath,
                             ['--test', '--test-reporter', 'dot', '--test-reporter-destination', 'stderr', testFile]);
-    assert.match(child.stderr.toString(), /.XX.\n/);
+    assert.match(child.stderr.toString(), /\.XX\.\n/);
     assert.match(child.stderr.toString(), /Failed tests:/);
     assert.match(child.stderr.toString(), /✖ failing/);
     assert.match(child.stderr.toString(), /✖ nested/);
@@ -70,7 +70,7 @@ describe('node:test reporters', { concurrency: true }, () => {
     assert.strictEqual(child.stderr.toString(), '');
     assert.strictEqual(child.stdout.toString(), '');
     const fileContents = fs.readFileSync(file, 'utf8');
-    assert.match(fileContents, /.XX.\n/);
+    assert.match(fileContents, /\.XX\.\n/);
     assert.match(fileContents, /Failed tests:/);
     assert.match(fileContents, /✖ failing/);
     assert.match(fileContents, /✖ nested/);
@@ -95,7 +95,7 @@ describe('node:test reporters', { concurrency: true }, () => {
     assert.match(child.stdout.toString(), /TAP version 13/);
     assert.match(child.stdout.toString(), /# duration_ms/);
     const fileContents = fs.readFileSync(file, 'utf8');
-    assert.match(fileContents, /.XX.\n/);
+    assert.match(fileContents, /\.XX\.\n/);
     assert.match(fileContents, /Failed tests:/);
     assert.match(fileContents, /✖ failing/);
     assert.match(fileContents, /✖ nested/);
