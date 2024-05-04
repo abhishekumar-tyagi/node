@@ -39,12 +39,12 @@ permissions:
 jobs:
   test-asan:
     if: github.event.pull_request.draft == false
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       CC: clang
       CXX: clang++
       LINK: clang++
-      CONFIG_FLAGS: --enable-asan
+      CONFIG_FLAGS: --enable-asan --debug-node
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b  # v4.1.4
         with:
