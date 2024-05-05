@@ -67,6 +67,9 @@
       ],
       'msvs_precompiled_header': 'tools/msvs/pch/node_pch.h',
       'msvs_precompiled_source': 'tools/msvs/pch/node_pch.cc',
+      'include_dirs': [
+        'tools/msvs/pch',
+      ],
       'sources': [
         '<(_msvs_precompiled_header)',
         '<(_msvs_precompiled_source)',
@@ -148,7 +151,7 @@
           'msvs_settings': {
             'VCLinkerTool': {
               'AdditionalOptions': [
-                '/WHOLEARCHIVE:zlib<(STATIC_LIB_SUFFIX)',
+                '/WHOLEARCHIVE:<(PRODUCT_DIR)/lib/zlib<(STATIC_LIB_SUFFIX)',
               ],
             },
           },
@@ -187,7 +190,7 @@
           'msvs_settings': {
             'VCLinkerTool': {
               'AdditionalOptions': [
-                '/WHOLEARCHIVE:libuv<(STATIC_LIB_SUFFIX)',
+                '/WHOLEARCHIVE:<(PRODUCT_DIR)/lib/libuv<(STATIC_LIB_SUFFIX)',
               ],
             },
           },
@@ -366,7 +369,7 @@
               'msvs_settings': {
                 'VCLinkerTool': {
                   'AdditionalOptions': [
-                    '/WHOLEARCHIVE:<(openssl_product)',
+                    '/WHOLEARCHIVE:<(PRODUCT_DIR)/lib/<(openssl_product)',
                   ],
                 },
               },
