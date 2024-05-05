@@ -1917,6 +1917,44 @@ console.log('After:', getActiveResourcesInfo());
 //   After: [ 'TTYWrap', 'TTYWrap', 'TTYWrap', 'Timeout' ]
 ```
 
+## `process.getBuiltin(id)`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+* `id` {string} ID of the built-in module being requested. Must not contain the `node:` prefix.
+* Returns: {Object}
+
+`process.getBuiltin(id)` provides a way to load the built-in modules
+in a globally available function. ES Modules that need to support
+other environments can use it to conditionally load a Node.js builtin
+when it is run in Node.js, without having to deal with the resolution
+error that can be thrown by `import 'node:id'` in a non-Node.js
+environment or having to use dynamic `import()` which either turns the
+module into an asynchronous module, or turns a synchronous API into an
+asynchronous one.
+
+```mjs
+if (globalThis.process && globalThis.process.getBuiltin) {
+  // Run in Node.js, use the Node.js fs module.
+  const fs = globalThis.process.getBuiltin('fs');
+  // If `require()` is needed to load user-modules, use createRequire()
+  const m = globalThis.process.getBuiltin('module');
+  const require = m.createRequire(import.meta.url);
+  const foo = require('foo');
+}
+```
+
+If `id` specifies a built-in available in the current Node.js process,
+`process.getBuiltin()` method returns the corresponding built-in
+module, which is the same as the object returned by
+[`require(id)`][`require()`]. If `id` does not correspond to any
+built-in module, an [`ERR_UNKNOWN_BUILTIN_MODULE`][] would be thrown.
+
+Unlike [`require(id)`][`require()`], `process.getBuiltin(id)` does not
+need or accept IDs with the `node:` prefix.
+
 ## `process.getegid()`
 
 <!-- YAML
@@ -4011,6 +4049,7 @@ cases:
 [`ChildProcess.disconnect()`]: child_process.md#subprocessdisconnect
 [`ChildProcess.send()`]: child_process.md#subprocesssendmessage-sendhandle-options-callback
 [`ChildProcess`]: child_process.md#class-childprocess
+[`ERR_UNKNOWN_BUILTIN_MODULE`]: errors.md#err_unknown_builtin_module
 [`Error`]: errors.md#class-error
 [`EventEmitter`]: events.md#class-eventemitter
 [`NODE_OPTIONS`]: cli.md#node_optionsoptions
