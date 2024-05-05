@@ -1164,6 +1164,7 @@
 
       'include_dirs': [
         'src',
+        'tools',
         'tools/msvs/genfiles',
         'deps/v8/include',
         'deps/cares/include',
